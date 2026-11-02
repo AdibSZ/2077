@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#141413"/>
+  <circle cx="60" cy="60" r="54" fill="#1D1D1B" stroke="#F62477" stroke-width="2"/>
+  <!-- Cyber Operative Head -->
+  <path d="M42,48 C42,30 78,30 78,48 L80,74 C80,88 40,88 40,74 Z" fill="#242422"/>
+  <!-- Diagonal Cyber Scar / Mark -->
+  <line x1="44" y1="44" x2="52" y2="68" stroke="#F62477" stroke-width="2"/>
+  <!-- Eyes -->
+  <circle cx="50" cy="56" r="3" fill="#FFFFFF"/>
+  <circle cx="70" cy="56" r="3" fill="#5DF8D8"/>
+  <!-- Tactical Collar -->
+  <path d="M28,110 L44,86 L76,86 L92,110 Z" fill="#181816" stroke="#F62477" stroke-width="1.5"/>
+  <polygon points="54,86 66,86 62,100 58,100" fill="#5DF8D8"/>
+</svg>
