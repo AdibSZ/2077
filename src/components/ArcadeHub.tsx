@@ -4,6 +4,7 @@ import { toPersianDigits } from '../utils/jalali';
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { db } from '../services/db';
+import { getAssetUrl } from '../utils/assets';
 
 interface ArcadeHubProps {
   profiles: UserProfile[];
@@ -184,7 +185,7 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
           {/* Section Banner */}
           <div className="flex items-center justify-between bg-[#141413] px-space-md py-space-sm rounded-lg border border-[#2F2F2D] relative overflow-hidden">
             <div className="flex items-center gap-space-sm z-10">
-              <img src="/brand/logo-mint.png" alt="2077 Arcade" className="w-6 h-auto object-contain drop-shadow-[0_0_8px_#5DF8D8]" />
+              <img src={getAssetUrl('/brand/logo-mint.png')} alt="2077 Arcade" className="w-6 h-auto object-contain drop-shadow-[0_0_8px_#5DF8D8]" />
               <span className="font-title-sm text-title-sm font-bold text-[#F5F5F5]">اتاق چالش‌های سایبری</span>
             </div>
             <span className="font-tech-micro text-tech-micro text-[#F62477] bg-[#F62477]/15 px-2 py-0.5 rounded font-bold border border-[#F62477]/30 z-10">
@@ -270,7 +271,7 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
             <div className="relative overflow-hidden bg-[#141413] p-space-md rounded-lg shadow-[0_0_24px_rgba(246,36,119,0.25)] border border-[#F62477]/40">
               <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-[#F62477] via-[#F62477]/80 to-transparent"></div>
               <div className="absolute -bottom-6 -left-6 w-32 h-32 opacity-[0.08] pointer-events-none">
-                <img src="/brand/logo-magenta.png" alt="" className="w-full h-full object-contain" />
+                <img src={getAssetUrl('/brand/logo-magenta.png')} alt="" className="w-full h-full object-contain" />
               </div>
               <div className="flex items-center justify-between mb-space-sm relative z-10">
                 <div className="flex items-center gap-space-xs bg-[#F62477]/20 text-[#F62477] px-space-sm py-0.5 rounded border border-[#F62477]/30">
@@ -292,10 +293,10 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
                   <div className="w-14 h-14 rounded-lg bg-[#1E1E1C] overflow-hidden shadow-[0_0_12px_rgba(246,36,119,0.4)] border border-[#F62477]/50">
                     <img
                       className="w-full h-full object-cover"
-                      src={champ.avatarUrl}
+                      src={getAssetUrl(champ.avatarUrl)}
                       alt={champ.fullName}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/avatars/admin.svg';
+                        (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
                       }}
                     />
                   </div>
@@ -353,10 +354,10 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
                   <div className="w-12 h-12 rounded-lg bg-[#1E1E1C] overflow-hidden shadow-[0_0_8px_rgba(93,248,216,0.25)] border border-[#5DF8D8]/30">
                     <img
                       className="w-full h-full object-cover"
-                      src={runnerUp.avatarUrl}
+                      src={getAssetUrl(runnerUp.avatarUrl)}
                       alt={runnerUp.fullName}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                        (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                       }}
                     />
                   </div>
@@ -406,10 +407,10 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
                   <div className="w-12 h-12 rounded-lg bg-[#1E1E1C] overflow-hidden border border-[#2F2F2D]">
                     <img
                       className="w-full h-full object-cover"
-                      src={thirdPlace.avatarUrl}
+                      src={getAssetUrl(thirdPlace.avatarUrl)}
                       alt={thirdPlace.fullName}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                        (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                       }}
                     />
                   </div>
@@ -457,10 +458,10 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
                     <div className="w-8 h-8 rounded bg-[#252523] overflow-hidden shrink-0">
                       <img
                         className="w-full h-full object-cover"
-                        src={p.avatarUrl}
+                        src={getAssetUrl(p.avatarUrl)}
                         alt={p.fullName}
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                          (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                         }}
                       />
                     </div>

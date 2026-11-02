@@ -4,12 +4,13 @@ import { registerPushNotifications } from '../services/notifications';
 import { UserProfile } from '../types';
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
+import { getAssetUrl } from '../utils/assets';
 
 interface AuthScreenProps {
   onLoginSuccess: (user: UserProfile) => void;
 }
 
-const EMBLEM_URL = '/brand/logo-magenta.png';
+const EMBLEM_URL = getAssetUrl('/brand/logo-magenta.png');
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState(() => {
@@ -92,7 +93,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
         <div className="relative w-full bg-[#141413]/95 border border-[#5DF8D8]/20 backdrop-blur-md p-space-lg shadow-2xl overflow-hidden [clip-path:polygon(18px_0,100%_0,100%_calc(100%-18px),calc(100%-18px)_100%,0_100%,0_18px)]">
           {/* Subtle 2077 Brand Watermark in Terminal Background */}
           <div className="absolute -bottom-10 -left-10 w-48 h-48 opacity-[0.06] pointer-events-none select-none">
-            <img src="/brand/logo-white.png" alt="" className="w-full h-full object-contain" />
+            <img src={getAssetUrl('/brand/logo-white.png')} alt="" className="w-full h-full object-contain" />
           </div>
 
           {/* Decorative Tech Reticles */}

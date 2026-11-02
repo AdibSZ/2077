@@ -17,6 +17,7 @@ import { OrbitJump } from '../games/OrbitJump';
 import { ChromaSwitch } from '../games/ChromaSwitch';
 import { CoreInjector } from '../games/CoreInjector';
 import { NeuralSequence } from '../games/NeuralSequence';
+import { getAssetUrl } from '../utils/assets';
 
 interface GameModalProps {
   gameId: GameId;
@@ -26,7 +27,7 @@ interface GameModalProps {
   onRefresh: () => void;
 }
 
-const EMBLEM_URL = '/brand/logo-mint.png';
+const EMBLEM_URL = getAssetUrl('/brand/logo-mint.png');
 
 export const GameModal: React.FC<GameModalProps> = ({
   gameId,
@@ -154,9 +155,9 @@ export const GameModal: React.FC<GameModalProps> = ({
               <img
                 alt={currentUser.fullName}
                 className="w-7 h-7 rounded-full object-cover"
-                src={currentUser.avatarUrl}
+                src={getAssetUrl(currentUser.avatarUrl)}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/avatars/admin.svg';
+                  (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
                 }}
               />
               <span className="absolute bottom-0 right-0 w-2 h-2 bg-[#5DF8D8] rounded-full ring-2 ring-[#141413]"></span>
@@ -215,7 +216,7 @@ export const GameModal: React.FC<GameModalProps> = ({
             <div className="absolute inset-0 bg-[#0D0D0C]/95 backdrop-blur-md rounded-xl border border-[#F62477]/40 p-6 flex flex-col items-center justify-between z-30 shadow-2xl animate-fade-in text-center">
               <div className="flex flex-col items-center gap-1">
                 <div className="w-14 h-14 rounded-full bg-[#F62477]/15 border border-[#F62477] flex items-center justify-center p-2 shadow-[0_0_20px_#F62477]">
-                  <img src="/brand/logo-magenta.png" alt="2077" className="w-full h-full object-contain drop-shadow-[0_0_8px_#F62477]" />
+                  <img src={getAssetUrl('/brand/logo-magenta.png')} alt="2077" className="w-full h-full object-contain drop-shadow-[0_0_8px_#F62477]" />
                 </div>
                 <h2 className="font-display-sm text-2xl font-black text-[#F5F5F5] mt-2">
                   اتمام دست بازی // GAME OVER

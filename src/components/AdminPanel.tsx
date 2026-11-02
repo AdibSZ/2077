@@ -4,6 +4,7 @@ import { db } from '../services/db';
 import { PERSIAN_MONTHS, getMonthNumber, toPersianDigits } from '../utils/jalali';
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
+import { getAssetUrl } from '../utils/assets';
 
 interface AdminPanelProps {
   profiles: UserProfile[];
@@ -303,7 +304,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
         <div className="flex items-center justify-between gap-space-sm relative z-10">
           <div className="flex items-center gap-space-sm min-w-0">
             <div className="w-10 h-10 rounded bg-[#5DF8D8]/15 border border-[#5DF8D8]/30 flex items-center justify-center p-1.5 shadow-[0_0_12px_rgba(93,248,216,0.25)] shrink-0">
-              <img src="/brand/logo-mint.png" alt="2077 Admin" className="w-full h-full object-contain drop-shadow-[0_0_6px_#5DF8D8]" />
+              <img src={getAssetUrl('/brand/logo-mint.png')} alt="2077 Admin" className="w-full h-full object-contain drop-shadow-[0_0_6px_#5DF8D8]" />
             </div>
             <div className="flex flex-col truncate text-right">
               <span className="font-tech-micro text-tech-micro text-[#A3A39E]">// ADMIN.TERMINAL</span>
@@ -529,10 +530,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                       <div className="relative w-16 h-16 bg-[#1C1C1B] border border-[#5DF8D8]/40 rounded-lg overflow-hidden flex items-center justify-center shrink-0 shadow-md">
                         <img
                           className="w-full h-full object-cover"
-                          src={avatarUrl}
+                          src={getAssetUrl(avatarUrl)}
                           alt="Avatar Preview"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                            (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                           }}
                         />
                       </div>
@@ -569,7 +570,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                               avatarUrl === preset ? 'border-[#F62477] scale-110 shadow-[0_0_8px_#F62477]' : 'border-[#2F2F2D]'
                             }`}
                           >
-                            <img src={preset} className="w-full h-full object-cover" alt="preset" />
+                            <img src={getAssetUrl(preset)} className="w-full h-full object-cover" alt="preset" />
                           </button>
                         ))}
                       </div>
@@ -698,10 +699,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                     <div className="relative w-12 h-12 rounded-lg bg-[#1C1C1B] shrink-0 overflow-hidden shadow-inner border border-[#5DF8D8]/20">
                       <img
                         className="w-full h-full object-cover"
-                        src={person.avatarUrl}
+                        src={getAssetUrl(person.avatarUrl)}
                         alt={person.fullName}
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                          (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                         }}
                       />
                       <span

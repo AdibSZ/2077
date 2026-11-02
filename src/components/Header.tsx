@@ -3,6 +3,7 @@ import { UserProfile, ActiveTab, NetworkSyncState } from '../types';
 import { sound } from '../utils/audio';
 import { toPersianDigits } from '../utils/jalali';
 import { db } from '../services/db';
+import { getAssetUrl } from '../utils/assets';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -10,7 +11,7 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-const EMBLEM_URL = '/brand/logo-mint.png';
+const EMBLEM_URL = getAssetUrl('/brand/logo-mint.png');
 
 export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -178,9 +179,9 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout
             <img
               alt={currentUser.fullName}
               className="w-9 h-9 rounded-full object-cover"
-              src={currentUser.avatarUrl}
+              src={getAssetUrl(currentUser.avatarUrl)}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/avatars/admin.svg';
+                (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
               }}
             />
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#5DF8D8] rounded-full ring-2 ring-[#0D0D0C]"></span>
@@ -191,11 +192,11 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout
             <div className="absolute left-0 top-12 w-64 bg-[#141413] border border-[#5DF8D8]/30 rounded-xl p-3 shadow-2xl z-50 flex flex-col gap-2.5 backdrop-blur-2xl [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)]">
               <div className="flex items-center gap-2 pb-2.5 border-b border-[#252523]">
                 <img
-                  src={currentUser.avatarUrl}
+                  src={getAssetUrl(currentUser.avatarUrl)}
                   alt={currentUser.fullName}
                   className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#5DF8D8]/40"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/avatars/admin.svg';
+                    (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
                   }}
                 />
                 <div className="flex flex-col truncate text-right flex-1">

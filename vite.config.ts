@@ -3,11 +3,12 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/2077/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png', 'brand/*.png', 'fonts/**/*.woff2'],
       manifest: {
         name: 'پورتال و آرکید ۲۰۷۷',
         short_name: '2077 Portal',
@@ -18,20 +19,21 @@ export default defineConfig({
         orientation: 'portrait',
         dir: 'rtl',
         lang: 'fa',
-        start_url: '/',
+        start_url: '/2077/',
+        scope: '/2077/',
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: '/2077/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/2077/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/2077/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

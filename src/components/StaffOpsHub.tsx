@@ -4,6 +4,7 @@ import { calculateAge, formatBirthdate, toPersianDigits } from '../utils/jalali'
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { db } from '../services/db';
+import { getAssetUrl } from '../utils/assets';
 
 interface StaffOpsHubProps {
   profiles: UserProfile[];
@@ -114,11 +115,11 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
       <section className="relative overflow-hidden rounded-xl bg-[#141413] border border-[#F62477]/40 shadow-[0_0_20px_rgba(246,36,119,0.22)] p-space-md">
         <div className="absolute -top-12 -right-12 w-28 h-28 bg-[#F62477]/15 rounded-full blur-2xl pointer-events-none"></div>
         <div className="absolute -bottom-6 -left-6 w-24 h-24 opacity-[0.08] pointer-events-none">
-          <img src="/brand/logo-magenta.png" alt="" className="w-full h-full object-contain" />
+          <img src={getAssetUrl('/brand/logo-magenta.png')} alt="" className="w-full h-full object-contain" />
         </div>
         <div className="flex items-start gap-space-md relative z-10">
           <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-[#F62477]/20 border border-[#F62477]/40 flex items-center justify-center shadow-[0_0_12px_rgba(246,36,119,0.35)] p-1.5">
-            <img src="/brand/logo-magenta.png" alt="2077 Icon" className="w-full h-full object-contain drop-shadow-[0_0_6px_#F62477]" />
+            <img src={getAssetUrl('/brand/logo-magenta.png')} alt="2077 Icon" className="w-full h-full object-contain drop-shadow-[0_0_6px_#F62477]" />
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             <div className="flex items-center justify-between gap-space-xs">
@@ -282,7 +283,7 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
         <div className="bg-[#141413] border border-[#5DF8D8]/30 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-lg relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#5DF8D8]/5 rounded-full blur-2xl pointer-events-none"></div>
           <div className="w-16 h-16 rounded-xl bg-[#5DF8D8]/10 border border-[#5DF8D8]/40 flex items-center justify-center p-2.5 shadow-[0_0_15px_rgba(93,248,216,0.3)]">
-            <img src="/brand/logo-mint.png" alt="2077 Insignia" className="w-full h-full object-contain drop-shadow-[0_0_8px_#5DF8D8]" />
+            <img src={getAssetUrl('/brand/logo-mint.png')} alt="2077 Insignia" className="w-full h-full object-contain drop-shadow-[0_0_8px_#5DF8D8]" />
           </div>
           <h3 className="font-title-sm text-base text-[#F5F5F5] font-bold">
             پرسنل فروشگاه هنوز ثبت نشده‌اند
@@ -343,10 +344,10 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
                 <div className="relative flex-shrink-0 w-20 h-20 bg-[#1E1E1C] rounded-xl overflow-hidden border border-[#5DF8D8]/30 shadow-[0_0_12px_rgba(93,248,216,0.2)]">
                   <img
                     className="w-full h-full object-cover"
-                    src={person.avatarUrl}
+                    src={getAssetUrl(person.avatarUrl)}
                     alt={person.fullName}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                      (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0C] via-transparent to-transparent opacity-60"></div>
@@ -654,11 +655,11 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
             <div className="flex items-center gap-3">
               <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#5DF8D8]/40 shrink-0">
                 <img
-                  src={selectedStaffDetail.avatarUrl}
+                  src={getAssetUrl(selectedStaffDetail.avatarUrl)}
                   alt={selectedStaffDetail.fullName}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/avatars/avatar1.svg';
+                    (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
                   }}
                 />
               </div>
