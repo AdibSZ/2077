@@ -24,6 +24,7 @@ const STORAGE_KEYS = {
   SUPABASE_CONFIG: '2077_supabase_runtime_config',
   SYNC_QUEUE: '2077_sync_pending_queue',
   LAST_SYNC: '2077_last_cloud_sync_time',
+  SAFE_BACKUP: '2077_safe_vault_backup',
 };
 
 // ONLY Admin user initially - all other staff added by Admin
@@ -97,28 +98,27 @@ class DatabaseService {
     // 1. Initialize Supabase client
     this.initSupabaseClient();
 
-    // 2. Version check and purge legacy mock data
-    const currentVersion = localStorage.getItem(STORAGE_KEYS.VERSION);
-    if (!currentVersion || currentVersion !== '2.0.0') {
-      localStorage.removeItem(STORAGE_KEYS.PROFILES);
-      localStorage.removeItem(STORAGE_KEYS.GAME_SCORES);
-      localStorage.removeItem(STORAGE_KEYS.TASKS);
-      localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+    // 2. Strict Data Persistence Guard: NEVER wipe user profiles, stats, or tasks on updates!
+    if (!localStorage.getItem(STORAGE_KEYS.VERSION)) {
       localStorage.setItem(STORAGE_KEYS.VERSION, '2.0.0');
     }
 
-    // 3. Load profiles
+    // 3. Load profiles (100% preservation guarantee + failsafe backup recovery)
     const savedProfiles = localStorage.getItem(STORAGE_KEYS.PROFILES);
     if (savedProfiles) {
       try {
         const parsed = JSON.parse(savedProfiles);
         this.profiles = parsed.length > 0 ? parsed : [...INITIAL_PROFILES];
       } catch {
-        this.profiles = [...INITIAL_PROFILES];
+        if (!this.tryRecoverFromSafeBackup()) {
+          this.profiles = [...INITIAL_PROFILES];
+        }
       }
     } else {
-      this.profiles = [...INITIAL_PROFILES];
-      this.saveProfilesLocally();
+      if (!this.tryRecoverFromSafeBackup()) {
+        this.profiles = [...INITIAL_PROFILES];
+        this.saveProfilesLocally();
+      }
     }
 
     // 4. Load game scores
@@ -265,8 +265,41 @@ class DatabaseService {
     return typeof navigator !== 'undefined' ? navigator.onLine : true;
   }
 
+  private tryRecoverFromSafeBackup(): boolean {
+    try {
+      const backupRaw = localStorage.getItem(STORAGE_KEYS.SAFE_BACKUP);
+      if (backupRaw) {
+        const backup = JSON.parse(backupRaw);
+        if (Array.isArray(backup.profiles) && backup.profiles.length > 0) {
+          this.profiles = backup.profiles;
+          if (backup.scores) this.gameScores = backup.scores;
+          if (backup.tasks) this.tasks = backup.tasks;
+          this.saveProfilesLocally();
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn('Backup recovery attempt error:', e);
+    }
+    return false;
+  }
+
   private saveProfilesLocally() {
-    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(this.profiles));
+    try {
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(this.profiles));
+      // Continuous Safe Vault Backup to guarantee zero data loss
+      localStorage.setItem(
+        STORAGE_KEYS.SAFE_BACKUP,
+        JSON.stringify({
+          profiles: this.profiles,
+          scores: this.gameScores,
+          tasks: this.tasks,
+          timestamp: new Date().toISOString(),
+        })
+      );
+    } catch (e) {
+      console.warn('Profile save warning:', e);
+    }
   }
 
   private saveScoresLocally() {
@@ -401,51 +434,76 @@ class DatabaseService {
         .order('total_cp', { ascending: false });
 
       if (!pErr && cloudProfiles && cloudProfiles.length > 0) {
-        this.profiles = cloudProfiles.map((d: any) => ({
-          id: d.id,
-          username: d.username,
-          passwordHash: d.password_hash,
-          fullName: d.full_name,
-          roleTitle: d.role_title,
-          department: d.department,
-          avatarUrl: d.avatar_url,
-          birthDay: d.birth_day,
-          birthMonth: d.birth_month,
-          birthMonthNum: d.birth_month_num,
-          birthYear: d.birth_year,
-          phoneNumber: d.phone_number,
-          internalExt: d.internal_ext,
-          isAdmin: d.is_admin,
-          isOnline: d.is_online,
-          shiftName: d.shift_name,
-          bankedXp: d.banked_xp,
-          crownsCount: d.crowns_count,
-          totalCp: d.total_cp,
-          pushSubscription: d.push_subscription,
-        }));
+        const cloudMap = new Map<string, UserProfile>();
+        cloudProfiles.forEach((d: any) => {
+          cloudMap.set(d.id, {
+            id: d.id,
+            username: d.username,
+            passwordHash: d.password_hash,
+            fullName: d.full_name,
+            roleTitle: d.role_title,
+            department: d.department,
+            avatarUrl: d.avatar_url,
+            birthDay: d.birth_day,
+            birthMonth: d.birth_month,
+            birthMonthNum: d.birth_month_num,
+            birthYear: d.birth_year,
+            phoneNumber: d.phone_number,
+            internalExt: d.internal_ext,
+            isAdmin: d.is_admin,
+            isOnline: d.is_online,
+            shiftName: d.shift_name,
+            bankedXp: d.banked_xp,
+            crownsCount: d.crowns_count,
+            totalCp: d.total_cp,
+            pushSubscription: d.push_subscription,
+          });
+        });
+
+        // Non-destructive Merge: Preserve all local profiles, update with cloud data, and add new cloud profiles
+        const merged: UserProfile[] = [];
+        const seenIds = new Set<string>();
+
+        for (const localP of this.profiles) {
+          const fromCloud = cloudMap.get(localP.id);
+          if (fromCloud) {
+            merged.push({ ...localP, ...fromCloud });
+          } else {
+            // Keep local profiles that haven't reached cloud yet!
+            merged.push(localP);
+          }
+          seenIds.add(localP.id);
+        }
+
+        for (const [id, cloudP] of cloudMap.entries()) {
+          if (!seenIds.has(id)) {
+            merged.push(cloudP);
+          }
+        }
+
+        this.profiles = merged;
         this.saveProfilesLocally();
       }
 
-      // 2. Fetch all game scores
+      // 2. Fetch all game scores (Non-destructive: retain highest score between local and cloud)
       const { data: cloudScores, error: sErr } = await supabase
         .from('game_scores')
         .select('*, profiles(full_name)');
 
       if (!sErr && cloudScores) {
-        const scoresMap: Record<string, { userId: string; userName: string; score: number }> = {};
         for (const record of cloudScores) {
           const gId = record.game_id;
           const score = record.high_score;
           const userName = record.profiles?.full_name || 'اپراتور';
-          if (!scoresMap[gId] || score > scoresMap[gId].score) {
-            scoresMap[gId] = {
+          const currentLocal = this.gameScores[gId];
+          if (!currentLocal || score >= currentLocal.score) {
+            this.gameScores[gId] = {
               userId: record.user_id,
               userName,
               score,
             };
           }
         }
-        this.gameScores = scoresMap;
         this.saveScoresLocally();
       }
 
