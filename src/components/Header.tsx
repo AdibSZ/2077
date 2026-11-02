@@ -10,11 +10,19 @@ interface HeaderProps {
   currentUser: UserProfile;
   activeTab: ActiveTab;
   onLogout: () => void;
+  onOpenNotifications?: () => void;
+  unreadNotificationCount?: number;
 }
 
 const EMBLEM_URL = getAssetUrl('/brand/logo-mint.png');
 
-export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({
+  currentUser,
+  activeTab,
+  onLogout,
+  onOpenNotifications,
+  unreadNotificationCount = 0,
+}) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [liveTime, setLiveTime] = useState('');
@@ -74,6 +82,8 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout
     switch (activeTab) {
       case 'staff':
         return 'هاب عملیات و پرسنل';
+      case 'tasks':
+        return 'تابلوی وظایف و تسک‌ها';
       case 'arcade':
         return 'باشگاه بازی و لیدربورد';
       case 'admin':
@@ -158,6 +168,22 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout
                 ? 'آفلاین'
                 : 'ابری'}
             </span>
+          </button>
+
+          {/* Notification Center Trigger Button */}
+          <button
+            onClick={onOpenNotifications}
+            title="مرکز اعلانات و پیام‌های پایانه"
+            aria-label="مرکز اعلانات"
+            className="w-9 h-9 rounded-lg bg-[#141413] border border-[#5DF8D8]/25 hover:border-[#5DF8D8] text-[#5DF8D8] flex items-center justify-center transition-colors active:scale-95 relative"
+          >
+            <span className="material-symbols-outlined text-[18px]">notifications</span>
+            {unreadNotificationCount > 0 && (
+              <>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F62477] animate-ping pointer-events-none"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F62477] border border-[#141413] pointer-events-none"></span>
+              </>
+            )}
           </button>
 
           {/* Sound Toggle Button */}

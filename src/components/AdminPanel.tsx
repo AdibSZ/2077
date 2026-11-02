@@ -289,6 +289,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
     onRefresh();
   };
 
+  const handleClearAnnouncement = () => {
+    db.clearAnnouncement();
+    setAnnContent('');
+    setAnnTitle('تابلوی اعلانات فروشگاه مرکزی ۲۰۷۷');
+    sound.play('gameover');
+    triggerHaptic('heavy');
+    showToast('دیوار اعلانات فروشگاه با موفقیت پاکسازی و از دید همه حذف شد.');
+    onRefresh();
+  };
+
   // Database Management Handlers
   const handleExportBackup = () => {
     const jsonStr = db.exportDatabaseJson();
@@ -1006,13 +1016,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
               </select>
             </div>
 
-            <button
-              type="submit"
-              className="mt-2 py-2.5 px-4 bg-[#F62477] hover:bg-[#5DF8D8] text-white hover:text-[#0A2821] font-bold rounded-lg text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(246,36,119,0.4)] transition-all active:scale-98"
-            >
-              <span className="material-symbols-outlined text-[18px]">publish</span>
-              <span>انتشار و بروزرسانی تابلوی اعلانات</span>
-            </button>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="submit"
+                className="flex-1 py-2.5 px-4 bg-[#F62477] hover:bg-[#5DF8D8] text-white hover:text-[#0A2821] font-bold rounded-lg text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(246,36,119,0.4)] transition-all active:scale-98"
+              >
+                <span className="material-symbols-outlined text-[18px]">publish</span>
+                <span>انتشار و بروزرسانی تابلوی اعلانات</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearAnnouncement}
+                className="py-2.5 px-4 bg-[#232321] hover:bg-[#F62477]/20 text-[#F62477] border border-[#F62477]/40 rounded-lg text-sm font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-98"
+                title="پاکسازی متن اعلان از تابلوی همه پرسنل"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                <span>پاکسازی اعلان</span>
+              </button>
+            </div>
           </form>
         </section>
       )}

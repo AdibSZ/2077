@@ -924,13 +924,31 @@ class DatabaseService {
   // TASKS & DISPATCH ENGINE
   // -----------------------------------------------------------------------
   getTasks(): Task[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.TASKS);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          this.tasks = parsed;
+        }
+      } catch {}
+    }
     return [...this.tasks];
   }
 
-  addTask(taskData: Omit<Task, 'id' | 'createdAt' | 'isCompleted'>): Task {
+  addTask(
+    taskData: Omit<Task, 'id' | 'createdAt' | 'isCompleted'>,
+    user?: UserProfile
+  ): Task {
+    const isGlobal = taskData.isGlobal || taskData.assignedToId === 'ALL';
     const newTask: Task = {
       ...taskData,
-      id: 'task-' + Date.now(),
+      id: 'task-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      assignedToId: isGlobal ? 'ALL' : taskData.assignedToId,
+      assignedToName: isGlobal ? 'عمومی // کلیه پرسنل' : taskData.assignedToName,
+      isGlobal,
+      createdById: user?.id,
+      createdByName: user?.fullName,
       isCompleted: false,
       createdAt: new Date().toISOString(),
     };
@@ -959,13 +977,36 @@ class DatabaseService {
     return newTask;
   }
 
-  toggleTask(id: string): Task | null {
+  toggleTask(id: string, user?: UserProfile): Task | null {
     const idx = this.tasks.findIndex((t) => t.id === id);
     if (idx === -1) return null;
-    this.tasks[idx].isCompleted = !this.tasks[idx].isCompleted;
+
+    const task = this.tasks[idx];
+    const isGlobal = task.isGlobal || task.assignedToId === 'ALL';
+
+    // Permission enforcement:
+    // Global tasks can ONLY be toggled by Admins
+    if (isGlobal && user && !user.isAdmin) {
+      throw new Error('تسک‌های همگانی فقط توسط مدیران سیستم قابل تایید و تکمیل هستند.');
+    }
+
+    // Personal tasks can be toggled by the assigned staff or by an Admin
+    if (!isGlobal && user && !user.isAdmin && task.assignedToId !== user.id) {
+      throw new Error('شما فقط مجاز به تغییر وضعیت وظایف محوله به خود هستید.');
+    }
+
+    task.isCompleted = !task.isCompleted;
+    if (task.isCompleted) {
+      task.completedAt = new Date().toISOString();
+      if (user) task.completedByName = user.fullName;
+    } else {
+      task.completedAt = undefined;
+      task.completedByName = undefined;
+    }
+
     this.saveTasksLocally();
 
-    const payload = { id, isCompleted: this.tasks[idx].isCompleted };
+    const payload = { id, isCompleted: task.isCompleted };
     if (supabase && this.isOnline()) {
       try {
         supabase.from('tasks').update({ is_completed: payload.isCompleted }).eq('id', id);
@@ -976,10 +1017,14 @@ class DatabaseService {
       this.enqueueSync({ type: 'task_toggle', payload });
     }
 
-    return this.tasks[idx];
+    return task;
   }
 
-  deleteTask(id: string): boolean {
+  deleteTask(id: string, user?: UserProfile): boolean {
+    if (user && !user.isAdmin) {
+      throw new Error('فقط مدیران سیستم مجاز به حذف وظایف هستند.');
+    }
+
     const prevLen = this.tasks.length;
     this.tasks = this.tasks.filter((t) => t.id !== id);
     this.saveTasksLocally();
@@ -1081,24 +1126,62 @@ class DatabaseService {
   // ANNOUNCEMENTS
   // -----------------------------------------------------------------------
   getAnnouncement(): Announcement {
+    const saved = localStorage.getItem(STORAGE_KEYS.ANNOUNCEMENTS);
+    if (saved) {
+      try {
+        this.announcement = JSON.parse(saved);
+      } catch {}
+    }
     return this.announcement;
   }
 
   updateAnnouncement(title: string, content: string, priority: string = 'عادی'): Announcement {
     this.announcement = {
       ...this.announcement,
-      title,
-      content,
+      title: title.trim(),
+      content: content.trim(),
       priority,
+      isActive: true,
       createdAt: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(this.announcement));
 
     const payload = {
-      title,
-      content,
+      title: this.announcement.title,
+      content: this.announcement.content,
       priority,
       is_active: true,
+    };
+
+    if (supabase && this.isOnline()) {
+      try {
+        supabase.from('announcements').insert(payload);
+      } catch {
+        this.enqueueSync({ type: 'announcement', payload });
+      }
+    } else {
+      this.enqueueSync({ type: 'announcement', payload });
+    }
+
+    return this.announcement;
+  }
+
+  clearAnnouncement(): Announcement {
+    this.announcement = {
+      ...this.announcement,
+      title: 'تابلوی اعلانات فروشگاه مرکزی ۲۰۷۷',
+      content: '',
+      priority: 'عادی',
+      isActive: false,
+      createdAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(this.announcement));
+
+    const payload = {
+      title: this.announcement.title,
+      content: '',
+      priority: 'عادی',
+      is_active: false,
     };
 
     if (supabase && this.isOnline()) {

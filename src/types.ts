@@ -25,12 +25,17 @@ export interface UserProfile {
 
 export interface Task {
   id: string;
-  assignedToId: string;
-  assignedToName: string;
+  assignedToId: string; // 'ALL' for global task, or specific user id
+  assignedToName: string; // 'عمومی // کلیه پرسنل' or staff full name
+  createdById?: string;
+  createdByName?: string;
   title: string;
   description: string;
   priority: 'عادی' | 'مهم' | 'فوری';
   isCompleted: boolean;
+  isGlobal?: boolean;
+  completedAt?: string;
+  completedByName?: string;
   createdAt: string;
 }
 
@@ -104,4 +109,4 @@ export interface Announcement {
   createdAt: string;
 }
 
-export type ActiveTab = 'staff' | 'arcade' | 'admin';
+export type ActiveTab = 'staff' | 'tasks' | 'arcade' | 'admin';

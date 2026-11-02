@@ -8,17 +8,21 @@ import { getAssetUrl } from '../utils/assets';
 import { CyberAvatar } from './CyberAvatar';
 
 interface StaffOpsHubProps {
+  currentUser: UserProfile;
   profiles: UserProfile[];
   announcement: Announcement;
   onRefresh: () => void;
   onNavigateToAdmin?: () => void;
+  onNavigateToTasks?: () => void;
 }
 
 export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
+  currentUser,
   profiles,
   announcement,
   onRefresh,
   onNavigateToAdmin,
+  onNavigateToTasks,
 }) => {
   const [filterDepartment, setFilterDepartment] = useState<string>('all');
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -35,6 +39,12 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [toastNotice, setToastNotice] = useState<string | null>(null);
+
+  // Announcement edit modal
+  const [isEditAnnModalOpen, setIsEditAnnModalOpen] = useState(false);
+  const [annTitleInput, setAnnTitleInput] = useState('');
+  const [annContentInput, setAnnContentInput] = useState('');
+  const [annPriorityInput, setAnnPriorityInput] = useState('عادی');
 
   useEffect(() => {
     setTasks(db.getTasks());
@@ -61,45 +71,75 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
   const pendingTasks = tasks.filter((t) => !t.isCompleted);
   const completionRate = tasks.length > 0 ? Math.round(((tasks.length - pendingTasks.length) / tasks.length) * 100) : 100;
 
-  // Task creation handler
+  // Task creation handler (Admin only)
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStaffForTask || !taskTitle.trim()) return;
 
-    db.addTask({
-      assignedToId: selectedStaffForTask.id,
-      assignedToName: selectedStaffForTask.fullName,
-      title: taskTitle.trim(),
-      description: taskDescription.trim(),
-      priority: taskPriority,
-    });
+    if (!currentUser.isAdmin) {
+      showToast('فقط مدیران سیستم مجاز به ارجاع وظیفه هستند.');
+      return;
+    }
 
-    sound.play('score');
-    triggerHaptic('success');
-    showToast(`تسک «${taskTitle}» به ${selectedStaffForTask.fullName} محول شد.`);
-    setTaskTitle('');
-    setTaskDescription('');
-    setSelectedStaffForTask(null);
-    refreshTasks();
+    try {
+      db.addTask(
+        {
+          assignedToId: selectedStaffForTask.id,
+          assignedToName: selectedStaffForTask.fullName,
+          title: taskTitle.trim(),
+          description: taskDescription.trim(),
+          priority: taskPriority,
+        },
+        currentUser
+      );
+
+      sound.play('score');
+      triggerHaptic('success');
+      showToast(`وظیفه با موفقیت به ${selectedStaffForTask.fullName} ارجاع شد.`);
+      setTaskTitle('');
+      setTaskDescription('');
+      setSelectedStaffForTask(null);
+      refreshTasks();
+      onRefresh();
+    } catch (err: any) {
+      showToast(err.message || 'خطا در ارجاع تسک');
+    }
   };
 
   const handleToggleTask = (taskId: string) => {
-    db.toggleTask(taskId);
-    sound.play('tap');
-    triggerHaptic('light');
-    refreshTasks();
+    try {
+      db.toggleTask(taskId, currentUser);
+      sound.play('tap');
+      triggerHaptic('light');
+      refreshTasks();
+      onRefresh();
+    } catch (err: any) {
+      showToast(err.message || 'خطا در تغییر وضعیت تسک');
+    }
   };
 
   const handleDeleteTask = (taskId: string) => {
-    db.deleteTask(taskId);
-    sound.play('gameover');
-    refreshTasks();
+    try {
+      db.deleteTask(taskId, currentUser);
+      sound.play('gameover');
+      triggerHaptic('heavy');
+      showToast('وظیفه از سیستم حذف گردید.');
+      refreshTasks();
+      onRefresh();
+    } catch (err: any) {
+      showToast(err.message || 'خطا در حذف وظیفه');
+    }
   };
 
-  // Broadcast Alert handler
+  // Broadcast Alert handler (Admin only)
   const handleSendBroadcast = (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastMessage.trim()) return;
+
+    if (!currentUser.isAdmin) {
+      showToast('فقط مدیران سیستم مجاز به ارسال هشدار فوری هستند.');
+      return;
+    }
 
     db.updateAnnouncement('هشدار عملیاتی فوری', broadcastMessage.trim(), 'فوری');
     sound.play('hit');
@@ -110,38 +150,144 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
     onRefresh();
   };
 
+  const handleClearUrgentAlert = () => {
+    if (!currentUser.isAdmin) {
+      showToast('فقط مدیران مجاز به پاکسازی هشدار فوری هستند.');
+      return;
+    }
+
+    db.clearAnnouncement();
+    sound.play('gameover');
+    triggerHaptic('heavy');
+    showToast('هشدار فوری با موفقیت پاکسازی و از تابلوی همه پرسنل حذف شد.');
+    onRefresh();
+  };
+
+  const handleClearAnnouncement = () => {
+    if (!currentUser.isAdmin) {
+      showToast('فقط مدیران مجاز به حذف اعلان هستند.');
+      return;
+    }
+
+    db.clearAnnouncement();
+    sound.play('tap');
+    triggerHaptic('medium');
+    showToast('پیام تابلوی اعلانات فروشگاه پاکسازی شد.');
+    onRefresh();
+  };
+
+  const handleSaveAnnouncement = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!annTitleInput.trim() || !annContentInput.trim()) {
+      showToast('لطفاً عنوان و متن اعلان را وارد کنید.');
+      return;
+    }
+
+    if (!currentUser.isAdmin) {
+      showToast('فقط مدیران مجاز به ویرایش اعلانات هستند.');
+      return;
+    }
+
+    db.updateAnnouncement(annTitleInput.trim(), annContentInput.trim(), annPriorityInput);
+    sound.play('score');
+    triggerHaptic('success');
+    showToast('تابلوی اعلانات فروشگاه با موفقیت بروزرسانی شد.');
+    setIsEditAnnModalOpen(false);
+    onRefresh();
+  };
+
   return (
     <div className="flex flex-col w-full gap-space-lg select-none pb-12">
       {/* Pinned Neon Store Announcement Banner */}
-      <section className="relative overflow-hidden rounded-xl bg-[#141413] border border-[#F62477]/40 shadow-[0_0_20px_rgba(246,36,119,0.22)] p-space-md">
-        <div className="absolute -top-12 -right-12 w-28 h-28 bg-[#F62477]/15 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="absolute -bottom-6 -left-6 w-24 h-24 opacity-[0.08] pointer-events-none">
-          <img src={getAssetUrl('/brand/logo-magenta.png')} alt="" className="w-full h-full object-contain" />
-        </div>
-        <div className="flex items-start gap-space-md relative z-10">
-          <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-[#F62477]/20 border border-[#F62477]/40 flex items-center justify-center shadow-[0_0_12px_rgba(246,36,119,0.35)] p-1.5">
-            <img src={getAssetUrl('/brand/logo-magenta.png')} alt="2077 Icon" className="w-full h-full object-contain drop-shadow-[0_0_6px_#F62477]" />
+      {announcement && announcement.content && announcement.isActive !== false ? (
+        <section className="relative overflow-hidden rounded-xl bg-[#141413] border border-[#F62477]/40 shadow-[0_0_20px_rgba(246,36,119,0.22)] p-space-md">
+          <div className="absolute -top-12 -right-12 w-28 h-28 bg-[#F62477]/15 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute -bottom-6 -left-6 w-24 h-24 opacity-[0.08] pointer-events-none">
+            <img src={getAssetUrl('/brand/logo-magenta.png')} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="flex-1 min-w-0 flex flex-col gap-1">
-            <div className="flex items-center justify-between gap-space-xs">
-              <span className="font-title-sm text-title-sm text-[#F62477] font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-[#F62477] rounded-full animate-ping"></span>
-                {announcement.title}
-              </span>
-              <span className={`font-tech-micro text-tech-micro px-2 py-0.5 rounded border ${
-                announcement.priority === 'فوری'
-                  ? 'bg-[#F62477]/20 text-[#F62477] border-[#F62477]/40 animate-pulse'
-                  : 'bg-[#242422] text-[#9E9E9C] border-[#F62477]/20'
-              }`}>
-                // {announcement.priority || 'عادی'}
-              </span>
+          <div className="flex items-start gap-space-md relative z-10">
+            <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-[#F62477]/20 border border-[#F62477]/40 flex items-center justify-center shadow-[0_0_12px_rgba(246,36,119,0.35)] p-1.5">
+              <img src={getAssetUrl('/brand/logo-magenta.png')} alt="2077 Icon" className="w-full h-full object-contain drop-shadow-[0_0_6px_#F62477]" />
             </div>
-            <p className="font-body-md text-body-md text-[#F5F5F5] leading-snug">
-              {announcement.content}
-            </p>
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-space-xs flex-wrap">
+                <span className="font-title-sm text-title-sm text-[#F62477] font-bold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-[#F62477] rounded-full animate-ping"></span>
+                  {announcement.title}
+                </span>
+                <span className={`font-tech-micro text-tech-micro px-2 py-0.5 rounded border ${
+                  announcement.priority === 'فوری'
+                    ? 'bg-[#F62477]/20 text-[#F62477] border-[#F62477]/40 animate-pulse font-bold'
+                    : 'bg-[#242422] text-[#9E9E9C] border-[#F62477]/20'
+                }`}>
+                  // {announcement.priority || 'عادی'}
+                </span>
+              </div>
+              <p className="font-body-md text-body-md text-[#F5F5F5] leading-snug">
+                {announcement.content}
+              </p>
+
+              {/* Admin Management Controls for Announcement & Urgent Alert */}
+              {currentUser.isAdmin && (
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F62477]/20 flex-wrap">
+                  {announcement.priority === 'فوری' && (
+                    <button
+                      onClick={handleClearUrgentAlert}
+                      className="py-1 px-2.5 bg-[#F62477] hover:bg-[#d01c62] text-white rounded text-xs font-bold flex items-center gap-1 active:scale-95 transition-all shadow-[0_0_10px_rgba(246,36,119,0.4)]"
+                      title="لغو و پاکسازی هشدار فوری برای کلیه پرسنل"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">crisis_alert</span>
+                      <span>پاکسازی هشدار فوری برای همه</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setAnnTitleInput(announcement.title);
+                      setAnnContentInput(announcement.content);
+                      setAnnPriorityInput(announcement.priority || 'عادی');
+                      setIsEditAnnModalOpen(true);
+                      sound.play('tap');
+                    }}
+                    className="py-1 px-2.5 bg-[#252523] hover:bg-[#353532] text-[#5DF8D8] border border-[#5DF8D8]/30 rounded text-xs flex items-center gap-1 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">edit_note</span>
+                    <span>ویرایش دیوار اعلانات</span>
+                  </button>
+
+                  <button
+                    onClick={handleClearAnnouncement}
+                    className="py-1 px-2.5 bg-[#252523] hover:bg-[#F62477]/20 text-[#F62477] border border-[#F62477]/30 rounded text-xs flex items-center gap-1 active:scale-95 transition-all"
+                    title="حذف و مخفی‌سازی اعلان برای همه"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">delete_sweep</span>
+                    <span>حذف اعلان</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+        </section>
+      ) : currentUser.isAdmin ? (
+        <div className="p-3 bg-[#141413] border border-dashed border-[#5DF8D8]/30 rounded-xl flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs text-[#A3A39E]">
+            <span className="material-symbols-outlined text-[#5DF8D8] text-[18px]">campaign</span>
+            <span>دیوار اعلانات فروشگاه در حال حاضر خالی است.</span>
+          </div>
+          <button
+            onClick={() => {
+              setAnnTitleInput('تابلوی اعلانات فروشگاه مرکزی ۲۰۷۷');
+              setAnnContentInput('');
+              setAnnPriorityInput('عادی');
+              setIsEditAnnModalOpen(true);
+              sound.play('tap');
+            }}
+            className="py-1.5 px-3 bg-[#5DF8D8]/15 hover:bg-[#5DF8D8] text-[#5DF8D8] hover:text-[#0A2821] rounded-lg text-xs font-bold border border-[#5DF8D8]/30 transition-all active:scale-95"
+          >
+            + ثبت پیام جدید برای پرسنل
+          </button>
         </div>
-      </section>
+      ) : null}
 
       {/* Quick Stats Bar - Dynamic Real Telemetry */}
       <section className="grid grid-cols-3 gap-space-sm">
@@ -156,13 +302,18 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
           <span className="font-body-sm text-body-sm text-[#9E9E9C] truncate">پرسنل آنلاین</span>
         </div>
 
-        <div className="flex flex-col p-space-sm bg-[#141413] border border-[#F62477]/25 rounded-xl relative overflow-hidden group">
+        <div
+          onClick={onNavigateToTasks}
+          className="flex flex-col p-space-sm bg-[#141413] border border-[#F62477]/25 hover:border-[#F62477]/60 rounded-xl relative overflow-hidden group cursor-pointer transition-all active:scale-95"
+          title="مشاهده تابلوی کامل وظایف"
+        >
           <div className="flex items-center justify-between mb-1">
             <span className="font-tech-micro text-tech-micro text-[#9E9E9C]">TASKS.LIVE</span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#F62477] shadow-[0_0_6px_rgba(246,36,119,0.9)]"></span>
           </div>
-          <span className="font-title-sm text-title-sm text-[#F62477] font-bold">
-            {toPersianDigits(pendingTasks.length)} وظیفه
+          <span className="font-title-sm text-title-sm text-[#F62477] font-bold flex items-center justify-between">
+            <span>{toPersianDigits(pendingTasks.length)} وظیفه</span>
+            {onNavigateToTasks && <span className="material-symbols-outlined text-[14px]">arrow_back</span>}
           </span>
           <span className="font-body-sm text-body-sm text-[#9E9E9C] truncate">وظایف در انتظار</span>
         </div>
@@ -394,7 +545,7 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-3 gap-space-xs mt-space-md pt-space-sm border-t border-[#242422]">
+              <div className={`grid ${currentUser.isAdmin ? 'grid-cols-3' : 'grid-cols-2'} gap-space-xs mt-space-md pt-space-sm border-t border-[#242422]`}>
                 <button
                   onClick={() => {
                     sound.play('tap');
@@ -406,18 +557,20 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
                   <span>تماس سریع</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    sound.play('tap');
-                    setSelectedStaffForTask(person);
-                  }}
-                  className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#1E1E1C] border border-transparent hover:border-[#F62477]/40 text-[#F5F5F5] font-body-sm text-xs hover:bg-[#F62477]/15 transition-all active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[16px] text-[#F62477]">
-                    assignment_add
-                  </span>
-                  <span>تخصیص تسک</span>
-                </button>
+                {currentUser.isAdmin && (
+                  <button
+                    onClick={() => {
+                      sound.play('tap');
+                      setSelectedStaffForTask(person);
+                    }}
+                    className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#1E1E1C] border border-transparent hover:border-[#F62477]/40 text-[#F5F5F5] font-body-sm text-xs hover:bg-[#F62477]/15 transition-all active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[16px] text-[#F62477]">
+                      assignment_add
+                    </span>
+                    <span>تخصیص تسک</span>
+                  </button>
+                )}
 
                 <div className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#1E1E1C] border border-transparent text-[#F5F5F5] font-body-sm text-xs">
                   <span className="material-symbols-outlined text-[16px] text-[#5DF8D8]">military_tech</span>
@@ -429,20 +582,22 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
         })}
       </div>
 
-      {/* Operational Broadcast Alert Trigger Button */}
-      <div className="mt-space-sm mb-space-md flex flex-col gap-2">
-        <button
-          onClick={() => {
-            sound.play('hit');
-            triggerHaptic('heavy');
-            setIsBroadcastModalOpen(true);
-          }}
-          className="w-full py-3.5 px-4 rounded-xl bg-[#F62477] text-white font-headline-md text-headline-md font-extrabold flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(246,36,119,0.5)] active:scale-[0.98] transition-transform"
-        >
-          <span className="material-symbols-outlined text-[24px]">sensors</span>
-          <span>ارسال هشدار فوری به کلیه پرسنل</span>
-        </button>
-      </div>
+      {/* Operational Broadcast Alert Trigger Button (Admin Only) */}
+      {currentUser.isAdmin && (
+        <div className="mt-space-sm mb-space-md flex flex-col gap-2">
+          <button
+            onClick={() => {
+              sound.play('hit');
+              triggerHaptic('heavy');
+              setIsBroadcastModalOpen(true);
+            }}
+            className="w-full py-3.5 px-4 rounded-xl bg-[#F62477] text-white font-headline-md text-headline-md font-extrabold flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(246,36,119,0.5)] active:scale-[0.98] transition-transform"
+          >
+            <span className="material-symbols-outlined text-[24px]">sensors</span>
+            <span>ارسال هشدار فوری به کلیه پرسنل</span>
+          </button>
+        </div>
+      )}
 
       {/* ============================================================= */}
       {/* MODAL 1: TASK ASSIGNMENT MODAL */}
@@ -708,6 +863,88 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
             >
               بستن پرونده
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* MODAL 5: ANNOUNCEMENT WALL EDITOR (Admin Only) */}
+      {/* ============================================================= */}
+      {isEditAnnModalOpen && currentUser.isAdmin && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#141413] border border-[#5DF8D8]/50 rounded-xl p-5 shadow-2xl flex flex-col gap-4 text-right [clip-path:polygon(14px_0,100%_0,100%_calc(100%-14px),calc(100%-14px)_100%,0_100%,0_14px)]">
+            <div className="flex items-center justify-between border-b border-[#252523] pb-2">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#5DF8D8] text-[20px]">campaign</span>
+                <h3 className="font-title-sm text-sm text-[#F5F5F5] font-bold">
+                  مدیریت دیوار اعلانات فروشگاه
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsEditAnnModalOpen(false)}
+                className="text-[#9E9E9C] hover:text-[#F62477]"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <p className="text-xs text-[#9E9E9C] leading-relaxed">
+              متن این اعلان در بالای صفحه تمام پرسنل قرار می‌گیرد و با بروزرسانی، برای همه همکاران تغییر می‌کند.
+            </p>
+
+            <form onSubmit={handleSaveAnnouncement} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-[#A3A39E]">عنوان اعلان:</label>
+                <input
+                  required
+                  placeholder="مثال: ساعت کاری فروشگاه در ایام تعطیلات"
+                  value={annTitleInput}
+                  onChange={(e) => setAnnTitleInput(e.target.value)}
+                  className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-[#5DF8D8]"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-[#A3A39E]">متن کامل پیام:</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="متن پیام را برای پرسنل بنویسید..."
+                  value={annContentInput}
+                  onChange={(e) => setAnnContentInput(e.target.value)}
+                  className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-[#5DF8D8] leading-relaxed"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-[#A3A39E]">سطح اولویت اعلان:</label>
+                <select
+                  value={annPriorityInput}
+                  onChange={(e) => setAnnPriorityInput(e.target.value)}
+                  className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-[#5DF8D8]"
+                >
+                  <option value="عادی">عادی (اطلاع‌رسانی عمومی)</option>
+                  <option value="مهم">مهم (توجه همکاران)</option>
+                  <option value="فوری">فوری (هشدار ویژه سیستمی)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-[#5DF8D8] text-[#0A2821] font-bold rounded-lg text-xs active:scale-95 transition-all shadow-[0_0_12px_rgba(93,248,216,0.3)]"
+                >
+                  انتشار و ذخیره برای همه
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditAnnModalOpen(false)}
+                  className="px-4 py-2.5 bg-[#232321] text-[#F5F5F5] rounded-lg text-xs hover:bg-[#32322F]"
+                >
+                  انصراف
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
