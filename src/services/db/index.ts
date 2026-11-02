@@ -1,0 +1,241 @@
+import { UserProfile, GameId, Announcement, Task, DatabaseStats } from '../../types';
+import { STORAGE_KEYS, normalizeDigits, normalizePersianText } from './storageKeys';
+import { StorageVault } from './vault';
+import { ProfileService } from './profileService';
+import { TaskService } from './taskService';
+import { AnnouncementService } from './announcementService';
+import { GameScoreService, GameScoreRecord } from './gameScoreService';
+import { CloudSyncService } from './cloudSync';
+
+export { normalizeDigits, normalizePersianText, STORAGE_KEYS, StorageVault };
+
+class DatabaseService {
+  private profilesService: ProfileService;
+  private tasksService: TaskService;
+  private announcementsService: AnnouncementService;
+  private gameScoresService: GameScoreService;
+  private cloudSyncService: CloudSyncService;
+
+  constructor() {
+    this.cloudSyncService = new CloudSyncService();
+
+    const enqueue = (item: any) => {
+      this.cloudSyncService.enqueue(item);
+    };
+
+    this.profilesService = new ProfileService(enqueue);
+    this.tasksService = new TaskService(enqueue);
+    this.announcementsService = new AnnouncementService(enqueue);
+    this.gameScoresService = new GameScoreService(enqueue);
+  }
+
+  // --- Profile & Authentication Methods ---
+  getProfiles(): UserProfile[] {
+    return this.profilesService.getProfiles();
+  }
+
+  getProfileById(id: string): UserProfile | undefined {
+    return this.profilesService.getProfileById(id);
+  }
+
+  getCurrentUser(): UserProfile | null {
+    return this.profilesService.getCurrentUser();
+  }
+
+  async login(username: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
+    const user = this.profilesService.verifyLogin(username, pass);
+    if (!user) {
+      return { user: null, error: 'نام کاربری یا رمز عبور اشتباه است.' };
+    }
+    return { user };
+  }
+
+  logout() {
+    this.profilesService.logout();
+  }
+
+  async addProfile(
+    profile: Omit<UserProfile, 'id' | 'bankedXp' | 'crownsCount' | 'totalCp'> & {
+      id?: string;
+      bankedXp?: number;
+      crownsCount?: number;
+      totalCp?: number;
+    }
+  ): Promise<UserProfile> {
+    return this.profilesService.addProfile(profile);
+  }
+
+  async updateProfile(id: string, updates: Partial<UserProfile>): Promise<UserProfile> {
+    const res = await this.profilesService.updateProfile(id, updates);
+    if (!res) throw new Error('کاربر یافت نشد!');
+    return res;
+  }
+
+  async savePushSubscription(userId: string, subscription: any) {
+    return this.updateProfile(userId, { pushSubscription: subscription });
+  }
+
+  async deleteProfile(id: string): Promise<boolean> {
+    return this.profilesService.deleteProfile(id);
+  }
+
+  // --- Task Operations ---
+  getTasks(): Task[] {
+    return this.tasksService.getTasks();
+  }
+
+  getUserTasks(userId: string, isAdmin: boolean): Task[] {
+    return this.tasksService.getUserTasks(userId, isAdmin);
+  }
+
+  async addTask(
+    taskData: Omit<Task, 'id' | 'createdAt' | 'isCompleted'> & { isCompleted?: boolean },
+    user?: UserProfile
+  ): Promise<Task> {
+    return this.tasksService.addTask({
+      ...taskData,
+      createdById: user?.id,
+      createdByName: user?.fullName,
+    });
+  }
+
+  async toggleTask(id: string, user?: UserProfile): Promise<Task | null> {
+    if (!user) {
+      const current = this.getCurrentUser();
+      if (!current) throw new Error('برای تغییر وضعیت تسک باید وارد سیستم شوید.');
+      user = current;
+    }
+    return this.tasksService.toggleTaskCompleted(id, user);
+  }
+
+  async deleteTask(id: string, user?: UserProfile): Promise<boolean> {
+    if (user && !user.isAdmin) {
+      throw new Error('فقط مدیران سیستم مجاز به حذف وظایف هستند.');
+    }
+    return this.tasksService.deleteTask(id);
+  }
+
+  // --- Announcement Operations ---
+  getAnnouncement(): Announcement {
+    return this.announcementsService.getAnnouncement();
+  }
+
+  updateAnnouncement(title: string, content: string, priority: string = 'عادی'): Announcement {
+    const p = (priority === 'فوری' || priority === 'مهم' ? priority : 'عادی') as 'عادی' | 'مهم' | 'فوری';
+    this.announcementsService.updateAnnouncement(title, content, p);
+    return this.announcementsService.getAnnouncement();
+  }
+
+  publishUrgentAlert(title: string, content: string): Announcement {
+    this.announcementsService.publishUrgentAlert(title, content);
+    return this.announcementsService.getAnnouncement();
+  }
+
+  clearUrgentAlert(): Announcement {
+    this.announcementsService.clearUrgentAlert();
+    return this.announcementsService.getAnnouncement();
+  }
+
+  clearAnnouncement(): Announcement {
+    this.announcementsService.clearAnnouncement();
+    return this.announcementsService.getAnnouncement();
+  }
+
+  // --- Game Scores & CP Engine ---
+  getGameScores(): Record<string, GameScoreRecord> {
+    return this.gameScoresService.getGameScores();
+  }
+
+  async submitGameResult(
+    userId: string,
+    gameId: GameId,
+    sessionScore: number,
+    multiplier: number
+  ) {
+    const profiles = this.profilesService.getProfiles();
+    return this.gameScoresService.submitGameResult(userId, gameId, sessionScore, multiplier, profiles);
+  }
+
+  calculateCp(gameId: GameId, score: number): number {
+    return this.gameScoresService.calculateCp(gameId, score);
+  }
+
+  // --- Cloud Sync & DB Diagnostics ---
+  getDatabaseStats(): DatabaseStats {
+    const profiles = this.profilesService.getProfiles();
+    const scores = this.gameScoresService.getGameScores();
+    const tasks = this.tasksService.getTasks();
+    return this.cloudSyncService.getDatabaseStats(profiles.length, Object.keys(scores).length, tasks.length);
+  }
+
+  getSyncState() {
+    return this.cloudSyncService.getSyncState();
+  }
+
+  getNetworkSyncState() {
+    return this.cloudSyncService.getSyncState();
+  }
+
+  subscribeSyncState(listener: (state: any) => void): () => void {
+    return this.cloudSyncService.subscribeSyncState(listener);
+  }
+
+  flushSyncQueue() {
+    return this.cloudSyncService.flushSyncQueue();
+  }
+
+  getSupabaseConfig() {
+    return this.cloudSyncService.getSupabaseConfig();
+  }
+
+  async configureSupabase(url: string, key: string) {
+    return this.cloudSyncService.configureSupabase(url, key);
+  }
+
+  exportDatabaseJson(): string {
+    const payload = {
+      exportMetadata: {
+        app: '2077 Family Portal & Arcade',
+        version: '2.5.0',
+        exportedAt: new Date().toISOString(),
+      },
+      profiles: this.profilesService.getProfiles(),
+      gameScores: this.gameScoresService.getGameScores(),
+      tasks: this.tasksService.getTasks(),
+      announcement: this.announcementsService.getAnnouncement(),
+    };
+    return JSON.stringify(payload, null, 2);
+  }
+
+  importDatabaseJson(jsonString: string): { success: boolean; message: string; count?: number } {
+    try {
+      const parsed = JSON.parse(jsonString);
+      if (!parsed.profiles || !Array.isArray(parsed.profiles)) {
+        return { success: false, message: 'ساختار فایل پشتیبان نامعتبر است (آرایه profiles یافت نشد)' };
+      }
+
+      this.profilesService.setProfilesFromRemote(parsed.profiles);
+      if (parsed.gameScores) this.gameScoresService.setScoresFromRemote(parsed.gameScores);
+      if (parsed.tasks) this.tasksService.setTasksFromRemote(parsed.tasks);
+      if (parsed.announcement) this.announcementsService.setAnnouncementFromRemote(parsed.announcement);
+
+      return {
+        success: true,
+        message: `پشتیبان با موفقیت بازیابی شد (${parsed.profiles.length} پروفایل و ${parsed.tasks?.length || 0} تسک)`,
+        count: parsed.profiles.length,
+      };
+    } catch (e: any) {
+      return { success: false, message: `خطا در پردازش فایل پشتیبان: ${e.message}` };
+    }
+  }
+
+  resetDatabase() {
+    StorageVault.removeItem(STORAGE_KEYS.PROFILES);
+    StorageVault.removeItem(STORAGE_KEYS.GAME_SCORES);
+    StorageVault.removeItem(STORAGE_KEYS.TASKS);
+    StorageVault.removeItem(STORAGE_KEYS.ANNOUNCEMENTS);
+    StorageVault.removeItem(STORAGE_KEYS.SAFE_BACKUP);
+  }
+}
+
+export const db = new DatabaseService();

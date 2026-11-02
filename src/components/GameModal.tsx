@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GameId, UserProfile } from '../types';
-import { GAMES_CATALOG } from './ArcadeHub';
+import { GAMES_CATALOG } from './arcade/arcadeCatalog';
 import { db } from '../services/db';
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';

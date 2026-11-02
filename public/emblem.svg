@@ -42,8 +42,8 @@
   </g>
 
   <!-- Micro HUD Subtext -->
-  <text x="100" y="125" fill="#F5F5F5" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" letter-spacing="3" text-anchor="middle">SYS.2077</text>
-  <text x="100" y="142" fill="#5DF8D8" font-family="'JetBrains Mono', monospace" font-size="7" font-weight="500" letter-spacing="1" text-anchor="middle">TACTICAL PORTAL</text>
+  <text x="100" y="125" fill="#F5F5F5" font-family="'JetBrains Mono', system-ui, sans-serif" font-size="10" font-weight="700" letter-spacing="3" text-anchor="middle">2077</text>
+  <text x="100" y="142" fill="#5DF8D8" font-family="'JetBrains Mono', system-ui, sans-serif" font-size="7.5" font-weight="700" letter-spacing="2" text-anchor="middle">FAMILY</text>
 
   <!-- Glowing Pips -->
   <circle cx="100" cy="50" r="3" fill="#F62477" filter="url(#bloom)"/>

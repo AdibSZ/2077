@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png', 'brand/*.png', 'fonts/**/*.woff2'],
       manifest: {
-        name: 'پورتال و آرکید ۲۰۷۷',
-        short_name: '2077 Portal',
-        description: 'سیستم یکپارچه پرسنل و مسابقات آرکید فروشگاه ۲۰۷۷',
+        name: '2077 Family',
+        short_name: '2077 Family',
+        description: 'سامانه هوشمند پرسنل و مسابقات آرکید فروشگاه ۲۰۷۷',
         theme_color: '#1D1D1B',
         background_color: '#1D1D1B',
         display: 'standalone',
@@ -25,18 +25,26 @@ export default defineConfig({
           {
             src: '/2077/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/2077/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: '/2077/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/2077/pwa-maskable-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/2077/pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },

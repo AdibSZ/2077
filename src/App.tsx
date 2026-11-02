@@ -10,6 +10,7 @@ import { ArcadeHub } from './components/ArcadeHub';
 import { AdminPanel } from './components/AdminPanel';
 import { GameModal } from './components/GameModal';
 import { NotificationModal } from './components/NotificationModal';
+import { ReloadPrompt } from './components/ReloadPrompt';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => db.getCurrentUser());
@@ -80,7 +81,12 @@ export function App() {
   }, [currentUser, announcement, myPendingTasksCount]);
 
   if (!currentUser) {
-    return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <>
+        <AuthScreen onLoginSuccess={handleLoginSuccess} />
+        <ReloadPrompt />
+      </>
+    );
   }
 
   const unreadNoticeCount = myPendingTasksCount + (announcement?.priority === 'فوری' ? 1 : 0);
@@ -170,6 +176,9 @@ export function App() {
           loadData();
         }}
       />
+
+      {/* PWA Self-Update Banner Prompt */}
+      <ReloadPrompt />
     </div>
   );
 }
