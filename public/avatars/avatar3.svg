@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#141413"/>
+  <circle cx="60" cy="60" r="54" fill="#1D1D1B" stroke="#5DF8D8" stroke-width="2"/>
+  <!-- Rugged Tactical Armor Head -->
+  <path d="M42,46 C42,28 78,28 78,46 L82,78 C82,92 38,92 38,78 Z" fill="#242422"/>
+  <!-- Cybernetic Beard / Chin Plate -->
+  <polygon points="44,76 76,76 68,90 52,90" fill="#141413" stroke="#F62477" stroke-width="1.5"/>
+  <!-- Eyes -->
+  <line x1="46" y1="56" x2="56" y2="56" stroke="#5DF8D8" stroke-width="3"/>
+  <line x1="64" y1="56" x2="74" y2="56" stroke="#5DF8D8" stroke-width="3"/>
+  <!-- Heavy Armor Shoulders -->
+  <path d="M22,110 L38,84 L82,84 L98,110 Z" fill="#1E1E1C" stroke="#5DF8D8" stroke-width="2"/>
+</svg>

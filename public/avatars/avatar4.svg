@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#141413"/>
+  <circle cx="60" cy="60" r="54" fill="#1D1D1B" stroke="#F62477" stroke-width="2"/>
+  <!-- Sleek Hair with Cyber Neon Highlights -->
+  <path d="M36,52 C36,28 84,28 84,52 L82,80 C82,92 38,92 38,80 Z" fill="#242422"/>
+  <path d="M34,48 C34,20 86,20 86,48 L80,38 L72,30 L48,30 L40,38 Z" fill="#F62477"/>
+  <path d="M32,58 L38,82 L42,66 Z" fill="#5DF8D8"/>
+  <path d="M88,58 L82,82 L78,66 Z" fill="#5DF8D8"/>
+  <!-- Eyes -->
+  <circle cx="48" cy="60" r="3" fill="#5DF8D8"/>
+  <circle cx="72" cy="60" r="3" fill="#F62477"/>
+  <!-- Tech Collar -->
+  <path d="M26,110 L44,88 L76,88 L94,110 Z" fill="#141413" stroke="#F62477" stroke-width="1.5"/>
+</svg>

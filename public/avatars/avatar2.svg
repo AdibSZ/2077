@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#141413"/>
+  <circle cx="60" cy="60" r="54" fill="#1D1D1B" stroke="#F62477" stroke-width="2"/>
+  <!-- Head & Hair -->
+  <path d="M40,50 C40,32 80,32 80,50 L82,75 C82,88 38,88 38,75 Z" fill="#282826"/>
+  <path d="M36,46 C36,22 84,22 84,46 L76,60 L70,34 L50,34 L44,60 Z" fill="#5DF8D8"/>
+  <!-- AR Neural Visor Glasses -->
+  <polygon points="34,54 86,54 82,66 38,66" fill="#141413" stroke="#F62477" stroke-width="2"/>
+  <line x1="36" y1="60" x2="84" y2="60" stroke="#F62477" stroke-width="2"/>
+  <circle cx="60" cy="60" r="2" fill="#5DF8D8"/>
+  <!-- Techwear Vest -->
+  <path d="M26,110 L42,88 L78,88 L94,110 Z" fill="#181816" stroke="#5DF8D8" stroke-width="1.5"/>
+</svg>
