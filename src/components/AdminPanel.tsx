@@ -5,6 +5,8 @@ import { PERSIAN_MONTHS, getMonthNumber, toPersianDigits } from '../utils/jalali
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { getAssetUrl } from '../utils/assets';
+import { processCyberpunkPhoto } from '../utils/cyberFilter';
+import { CyberAvatar } from './CyberAvatar';
 
 interface AdminPanelProps {
   profiles: UserProfile[];
@@ -43,6 +45,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
   const [phoneNumber, setPhoneNumber] = useState('');
   const [internalExt, setInternalExt] = useState('');
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isProcessingFilter, setIsProcessingFilter] = useState(false);
 
   // Announcement states
   const [annTitle, setAnnTitle] = useState('');
@@ -146,24 +149,55 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
     onRefresh();
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('حداکثر حجم مجاز تصویر ۵ مگابایت است.');
+    if (file.size > 15 * 1024 * 1024) {
+      showToast('حداکثر حجم مجاز تصویر ۱۵ مگابایت است.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setAvatarUrl(reader.result);
-        sound.play('hit');
-        triggerHaptic('light');
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      setIsProcessingFilter(true);
+      showToast('در حال پردازش و تبدیل عکس به حالت نئونی سایبرپانک ۲۰۷۷...');
+      const processed = await processCyberpunkPhoto(file);
+      setAvatarUrl(processed);
+      sound.play('hit');
+      triggerHaptic('medium');
+      showToast('استایل و فیلتر سایبرپانک با موفقیت روی عکس اعمال شد.');
+    } catch (err) {
+      console.warn('Canvas filter fallback:', err);
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setAvatarUrl(reader.result);
+          sound.play('hit');
+          triggerHaptic('light');
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsProcessingFilter(false);
+    }
+  };
+
+  const handleApplyCyberFilterToCurrent = async () => {
+    if (!avatarUrl) return;
+    try {
+      setIsProcessingFilter(true);
+      showToast('در حال اعمال مجدد استایل سایبرپانک روی تصویر...');
+      const processed = await processCyberpunkPhoto(avatarUrl);
+      setAvatarUrl(processed);
+      sound.play('hit');
+      triggerHaptic('medium');
+      showToast('فیلتر سایبرپانک تثبیت شد.');
+    } catch (err) {
+      console.error(err);
+      showToast('خطا در پردازش تصویر');
+    } finally {
+      setIsProcessingFilter(false);
+    }
   };
 
   const handleSubmitStaff = async (e: React.FormEvent) => {
@@ -431,27 +465,70 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                   />
                 </div>
 
-                {/* Role and Department */}
-                <div className="flex flex-col gap-1 text-right">
-                  <label className="font-body-sm text-body-sm text-[#A3A39E]">سمت در فروشگاه</label>
-                  <select
+                {/* Role Title (Manual Custom Input + Suggestions) */}
+                <div className="flex flex-col gap-1.5 text-right">
+                  <div className="flex items-center justify-between">
+                    <label className="font-body-sm text-body-sm text-[#A3A39E]">
+                      نقش و سمت سازمانی (تایپ آزاد دستی)
+                    </label>
+                    <span className="font-tech-micro text-[11px] text-[#5DF8D8]">
+                      // MANUAL_ROLE_INPUT
+                    </span>
+                  </div>
+                  <input
+                    type="text"
                     value={roleTitle}
-                    onChange={(e) => {
-                      setRoleTitle(e.target.value);
-                      if (e.target.value.includes('FIXER')) setDepartment('FRONT-DESK');
-                      else if (e.target.value.includes('NETRUNNER')) setDepartment('CORE-SYS');
-                      else if (e.target.value.includes('VAULT')) setDepartment('VAULT');
-                      else if (e.target.value.includes('TECH')) setDepartment('AI-SHOWCASE');
-                      else if (e.target.value.includes('ESPORTS')) setDepartment('ESPORTS');
-                    }}
+                    onChange={(e) => setRoleTitle(e.target.value)}
+                    placeholder="سمت دلخواه را تایپ کنید (مثلاً: مدیر فروشگاه، سرپرست شیفت، حسابدار...)"
+                    className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-space-md py-2.5 rounded-lg font-body-md text-body-md focus:outline-none focus:border-[#5DF8D8] text-right"
+                    required
+                  />
+
+                  {/* Quick Preset Role Chips */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    <span className="text-[10px] text-[#A3A39E]">پیشنهادات سریع:</span>
+                    {[
+                      'متخصص فروش // FIXER',
+                      'مدیر داخلی فروشگاه',
+                      'صندوق‌دار و پذیرش',
+                      'مدیر فنی سیستم // NETRUNNER',
+                      'انباردار و لجستیک',
+                      'لیدر مسابقات آرکید',
+                      'مسئول خدمات و پشتیبانی',
+                      'کارشناس هوش مصنوعی'
+                    ].map((title) => (
+                      <button
+                        key={title}
+                        type="button"
+                        onClick={() => {
+                          setRoleTitle(title);
+                          sound.play('tap');
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded transition-all border ${
+                          roleTitle === title
+                            ? 'bg-[#5DF8D8]/20 border-[#5DF8D8] text-[#5DF8D8] font-bold shadow-[0_0_8px_rgba(93,248,216,0.2)]'
+                            : 'bg-[#181816] border-[#2A2A28] text-[#A3A39E] hover:border-[#5DF8D8]/40 hover:text-[#F5F5F5]'
+                        }`}
+                      >
+                        {title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Department Selection */}
+                <div className="flex flex-col gap-1 text-right">
+                  <label className="font-body-sm text-body-sm text-[#A3A39E]">بخش / دپارتمان سازمانی</label>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
                     className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-space-md py-2.5 rounded-lg font-body-md text-body-md focus:outline-none focus:border-[#5DF8D8]"
                   >
-                    <option value="متخصص فروش // FIXER">متخصص فروش (Cyber Sales // FIXER)</option>
-                    <option value="مدیر فنی سیستم // NETRUNNER">مدیر فنی سیستم (Netrunner Ops)</option>
-                    <option value="انباردار و لجستیک // VAULT">انباردار و لجستیک (Vault Logistics)</option>
-                    <option value="مسئول هوش مصنوعی // TECH">مسئول هوش مصنوعی (Tech Specialist)</option>
-                    <option value="لیدر مسابقات // APEX RUNNER">لیدر مسابقات (Apex Runner)</option>
-                    <option value="کارشناس تضمین کیفیت // QA">کارشناس تضمین کیفیت (QA Tech)</option>
+                    <option value="FRONT-DESK">فروش و ارتباط با مشتریان (FRONT-DESK)</option>
+                    <option value="CORE-SYS">مدیریت و آی‌تی سیستم (CORE-SYS)</option>
+                    <option value="VAULT">انبار و لجستیک (VAULT)</option>
+                    <option value="AI-SHOWCASE">هوش مصنوعی و نوآوری (AI-SHOWCASE)</option>
+                    <option value="ESPORTS">تیم آرکید و مسابقات (ESPORTS)</option>
                   </select>
                 </div>
 
@@ -520,57 +597,101 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                   </div>
                 </div>
 
-                {/* Photo Upload and Presets */}
+                {/* Photo Upload and Presets with Cyberpunk Filter Treatment */}
                 <div className="flex flex-col gap-1 text-right">
-                  <label className="font-body-sm text-body-sm text-[#A3A39E]">
-                    تصویر پرسنلی (آپلود عکس از گالری یا انتخاب از آواتارها)
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-body-sm text-body-sm text-[#A3A39E]">
+                      تصویر پرسنلی با فیلتر اختصاصی سایبرپانک ۲۰۷۷
+                    </label>
+                    <span className="font-tech-micro text-[11px] text-[#5DF8D8] flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#5DF8D8] animate-ping"></span>
+                      CYBER_FILTER: ACTIVE
+                    </span>
+                  </div>
+
                   <div className="relative w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 rounded-lg p-space-md flex flex-col gap-3 shadow-inner">
                     <div className="flex items-center gap-space-md">
-                      <div className="relative w-16 h-16 bg-[#1C1C1B] border border-[#5DF8D8]/40 rounded-lg overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-                        <img
-                          className="w-full h-full object-cover"
-                          src={getAssetUrl(avatarUrl)}
-                          alt="Avatar Preview"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                          }}
+                      {/* Live Cyberpunk Avatar Preview */}
+                      <div className="relative shrink-0">
+                        <CyberAvatar
+                          src={avatarUrl}
+                          size="xl"
+                          showReticle={true}
+                          neonBorder="dual"
+                          showScanlines={true}
+                          className="shadow-[0_0_16px_rgba(93,248,216,0.3)]"
                         />
+                        {isProcessingFilter && (
+                          <div className="absolute inset-0 bg-[#0D0D0C]/80 rounded-xl flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[#5DF8D8] text-[20px] animate-spin">
+                              sync
+                            </span>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex flex-col text-right flex-1">
-                        <span className="font-body-sm text-xs text-[#F5F5F5] font-semibold">
-                          آپلود عکس واقعی پرسنل
+                      <div className="flex flex-col text-right flex-1 min-w-0">
+                        <span className="font-body-sm text-xs text-[#F5F5F5] font-semibold flex items-center gap-1">
+                          <span>آپلود تصویر دوربین یا گالری</span>
+                          <span className="font-tech-micro text-[10px] text-[#F62477] bg-[#F62477]/15 px-1.5 py-0.2 rounded border border-[#F62477]/30">
+                            نئون گرادیان خودکار
+                          </span>
                         </span>
-                        <span className="text-[11px] text-[#A3A39E]">
-                          تصویر مستقیماً در دیتابیس دستگاه ذخیره می‌شود.
+                        <span className="text-[11px] text-[#A3A39E] mt-0.5">
+                          هر عکسی آپلود شود، به‌طور هوشمند به پرتره سایبرپانکی با رنگ‌بندی نئونی و اسکن‌لاین تبدیل می‌شود.
                         </span>
-                        <label className="mt-1.5 cursor-pointer inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-[#5DF8D8] text-[#0A2821] font-bold rounded text-xs active:scale-95 transition-transform w-fit">
-                          <span className="material-symbols-outlined text-[16px]">file_upload</span>
-                          <span>انتخاب عکس از گالری/دوربین</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileUpload}
-                          />
-                        </label>
+
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <label className="cursor-pointer inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-[#5DF8D8] text-[#0A2821] font-bold rounded text-xs active:scale-95 transition-transform">
+                            <span className="material-symbols-outlined text-[16px]">add_a_photo</span>
+                            <span>{isProcessingFilter ? 'در حال اعمال استایل...' : 'انتخاب عکس جدید'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleFileUpload}
+                              disabled={isProcessingFilter}
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={handleApplyCyberFilterToCurrent}
+                            disabled={isProcessingFilter}
+                            className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-[#1C1C1B] hover:bg-[#F62477]/20 text-[#F62477] border border-[#F62477]/40 rounded text-xs active:scale-95 transition-all"
+                            title="تثبیت و اعمال فیلتر سایبرپانک روی این عکس"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">auto_fix_high</span>
+                            <span>تثبیت فیلتر نئونی</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 pt-2 border-t border-[#232321]">
-                      <span className="text-[11px] text-[#A3A39E]">یا انتخاب آواتار پیش‌فرض:</span>
+                      <span className="text-[11px] text-[#A3A39E] shrink-0">یا انتخاب آواتار پیش‌فرض:</span>
                       <div className="flex items-center gap-2 overflow-x-auto py-1">
                         {AVATAR_PRESETS.map((preset, idx) => (
                           <button
                             key={idx}
                             type="button"
-                            onClick={() => setAvatarUrl(preset)}
-                            className={`w-9 h-9 rounded-full overflow-hidden border shrink-0 transition-all ${
-                              avatarUrl === preset ? 'border-[#F62477] scale-110 shadow-[0_0_8px_#F62477]' : 'border-[#2F2F2D]'
+                            onClick={() => {
+                              setAvatarUrl(preset);
+                              sound.play('tap');
+                            }}
+                            className={`rounded-lg p-0.5 border shrink-0 transition-all ${
+                              avatarUrl === preset
+                                ? 'border-[#F62477] scale-110 shadow-[0_0_10px_#F62477]'
+                                : 'border-[#2F2F2D] hover:border-[#5DF8D8]/50'
                             }`}
                           >
-                            <img src={getAssetUrl(preset)} className="w-full h-full object-cover" alt="preset" />
+                            <CyberAvatar
+                              src={preset}
+                              size="sm"
+                              shape="rounded"
+                              neonBorder={avatarUrl === preset ? 'magenta' : 'subtle'}
+                              showScanlines={false}
+                            />
                           </button>
                         ))}
                       </div>
@@ -696,21 +817,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
               >
                 <div className="flex items-center justify-between gap-space-sm">
                   <div className="flex items-center gap-space-sm min-w-0">
-                    <div className="relative w-12 h-12 rounded-lg bg-[#1C1C1B] shrink-0 overflow-hidden shadow-inner border border-[#5DF8D8]/20">
-                      <img
-                        className="w-full h-full object-cover"
-                        src={getAssetUrl(person.avatarUrl)}
-                        alt={person.fullName}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                        }}
-                      />
-                      <span
-                        className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${
-                          person.isOnline ? 'bg-[#5DF8D8] shadow-[0_0_6px_#5DF8D8]' : 'bg-[#3A3A36]'
-                        }`}
-                      ></span>
-                    </div>
+                    <CyberAvatar
+                      src={person.avatarUrl}
+                      alt={person.fullName}
+                      size="md"
+                      isOnline={person.isOnline}
+                      showOnlineBadge={true}
+                      showReticle={true}
+                      neonBorder={person.isAdmin ? 'magenta' : 'mint'}
+                    />
                     <div className="flex flex-col text-right truncate">
                       <div className="flex items-center gap-space-xs">
                         <span className="font-title-sm text-title-sm text-[#F5F5F5] truncate">

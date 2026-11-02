@@ -74,3 +74,34 @@
     font-family: 'Peyda', system-ui, -apple-system, sans-serif;
   }
 }
+
+/* =========================================================================
+   SYS.2077 // CYBERPUNK 2077 PHOTO & HOLOGRAM UTILITY CLASSES
+   ========================================================================= */
+
+.cyber-photo {
+  filter: contrast(1.18) saturate(1.24) brightness(0.96);
+}
+
+.cyber-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.28) 0px,
+    rgba(0, 0, 0, 0.28) 1.5px,
+    transparent 1.5px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+
+.cyber-duotone-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(246, 36, 119, 0.16) 0%,
+    transparent 45%,
+    rgba(93, 248, 216, 0.18) 100%
+  );
+  mix-blend-mode: color-dodge;
+  pointer-events: none;
+}
+

@@ -5,6 +5,7 @@ import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { db } from '../services/db';
 import { getAssetUrl } from '../utils/assets';
+import { CyberAvatar } from './CyberAvatar';
 
 interface ArcadeHubProps {
   profiles: UserProfile[];
@@ -290,17 +291,16 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
 
               <div className="flex items-center gap-space-md">
                 <div className="relative shrink-0">
-                  <div className="w-14 h-14 rounded-lg bg-[#1E1E1C] overflow-hidden shadow-[0_0_12px_rgba(246,36,119,0.4)] border border-[#F62477]/50">
-                    <img
-                      className="w-full h-full object-cover"
-                      src={getAssetUrl(champ.avatarUrl)}
-                      alt={champ.fullName}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
-                      }}
-                    />
-                  </div>
-                  <div className="absolute -top-2 -right-2 bg-[#F62477] text-white w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_8px_#F62477]">
+                  <CyberAvatar
+                    src={champ.avatarUrl}
+                    alt={champ.fullName}
+                    size="lg"
+                    neonBorder="magenta"
+                    showReticle={true}
+                    shape="chamfer"
+                    className="shadow-[0_0_16px_rgba(246,36,119,0.45)]"
+                  />
+                  <div className="absolute -top-2 -right-2 bg-[#F62477] text-white w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_8px_#F62477] z-10">
                     <span className="material-symbols-outlined text-[14px]">workspace_premium</span>
                   </div>
                 </div>
@@ -351,17 +351,16 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
               </div>
               <div className="flex items-center gap-space-md">
                 <div className="relative shrink-0">
-                  <div className="w-12 h-12 rounded-lg bg-[#1E1E1C] overflow-hidden shadow-[0_0_8px_rgba(93,248,216,0.25)] border border-[#5DF8D8]/30">
-                    <img
-                      className="w-full h-full object-cover"
-                      src={getAssetUrl(runnerUp.avatarUrl)}
-                      alt={runnerUp.fullName}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                      }}
-                    />
-                  </div>
-                  <div className="absolute -top-1.5 -right-1.5 bg-[#5DF8D8] text-[#0A2821] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  <CyberAvatar
+                    src={runnerUp.avatarUrl}
+                    alt={runnerUp.fullName}
+                    size="md"
+                    neonBorder="mint"
+                    showReticle={true}
+                    shape="chamfer"
+                    className="shadow-[0_0_12px_rgba(93,248,216,0.3)]"
+                  />
+                  <div className="absolute -top-1.5 -right-1.5 bg-[#5DF8D8] text-[#0A2821] w-5 h-5 rounded-full flex items-center justify-center font-bold z-10">
                     <span className="material-symbols-outlined text-[12px]">star</span>
                   </div>
                 </div>
@@ -404,17 +403,15 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
               </div>
               <div className="flex items-center gap-space-md">
                 <div className="relative shrink-0">
-                  <div className="w-12 h-12 rounded-lg bg-[#1E1E1C] overflow-hidden border border-[#2F2F2D]">
-                    <img
-                      className="w-full h-full object-cover"
-                      src={getAssetUrl(thirdPlace.avatarUrl)}
-                      alt={thirdPlace.fullName}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                      }}
-                    />
-                  </div>
-                  <div className="absolute -top-1.5 -right-1.5 bg-[#2C2C2A] text-[#F5F5F5] w-5 h-5 rounded-full flex items-center justify-center border border-[#5DF8D8]/30">
+                  <CyberAvatar
+                    src={thirdPlace.avatarUrl}
+                    alt={thirdPlace.fullName}
+                    size="md"
+                    neonBorder="subtle"
+                    showReticle={true}
+                    shape="chamfer"
+                  />
+                  <div className="absolute -top-1.5 -right-1.5 bg-[#2C2C2A] text-[#F5F5F5] w-5 h-5 rounded-full flex items-center justify-center border border-[#5DF8D8]/30 z-10">
                     <span className="material-symbols-outlined text-[12px]">grade</span>
                   </div>
                 </div>
@@ -455,16 +452,13 @@ export const ArcadeHub: React.FC<ArcadeHubProps> = ({ profiles, gameScores, onLa
                     <span className="font-code-md text-code-md text-[#9E9E9C] font-bold w-6 text-center">
                       #{idx + 4}
                     </span>
-                    <div className="w-8 h-8 rounded bg-[#252523] overflow-hidden shrink-0">
-                      <img
-                        className="w-full h-full object-cover"
-                        src={getAssetUrl(p.avatarUrl)}
-                        alt={p.fullName}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                        }}
-                      />
-                    </div>
+                    <CyberAvatar
+                      src={p.avatarUrl}
+                      alt={p.fullName}
+                      size="xs"
+                      neonBorder="subtle"
+                      shape="rounded"
+                    />
                     <div className="flex flex-col min-w-0">
                       <span className="font-body-md text-body-md font-semibold text-[#F5F5F5] truncate">
                         {p.fullName}

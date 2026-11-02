@@ -5,6 +5,7 @@ import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { db } from '../services/db';
 import { getAssetUrl } from '../utils/assets';
+import { CyberAvatar } from './CyberAvatar';
 
 interface StaffOpsHubProps {
   profiles: UserProfile[];
@@ -340,21 +341,17 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
                 className="flex items-start gap-space-md cursor-pointer hover:opacity-95 transition-opacity"
                 onClick={() => setSelectedStaffDetail(person)}
               >
-                {/* Chamfered Avatar with HUD styling */}
-                <div className="relative flex-shrink-0 w-20 h-20 bg-[#1E1E1C] rounded-xl overflow-hidden border border-[#5DF8D8]/30 shadow-[0_0_12px_rgba(93,248,216,0.2)]">
-                  <img
-                    className="w-full h-full object-cover"
-                    src={getAssetUrl(person.avatarUrl)}
-                    alt={person.fullName}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0C] via-transparent to-transparent opacity-60"></div>
-                  <div className="absolute top-1 right-1 font-tech-micro text-tech-micro bg-[#0D0D0C]/80 text-[#5DF8D8] px-1 rounded">
-                    {person.isOnline ? 'SYS' : 'OFFLINE'}
-                  </div>
-                </div>
+                {/* Chamfered Cyberpunk Avatar with HUD styling */}
+                <CyberAvatar
+                  src={person.avatarUrl}
+                  alt={person.fullName}
+                  size="xl"
+                  isOnline={person.isOnline}
+                  showOnlineBadge={true}
+                  showReticle={true}
+                  neonBorder={person.isAdmin ? 'magenta' : 'mint'}
+                  className="shadow-[0_0_14px_rgba(93,248,216,0.25)]"
+                />
 
                 {/* Info & Badges */}
                 <div className="flex-1 min-w-0 flex flex-col gap-1">
@@ -653,16 +650,16 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#5DF8D8]/40 shrink-0">
-                <img
-                  src={getAssetUrl(selectedStaffDetail.avatarUrl)}
-                  alt={selectedStaffDetail.fullName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = getAssetUrl('/avatars/avatar1.svg');
-                  }}
-                />
-              </div>
+              <CyberAvatar
+                src={selectedStaffDetail.avatarUrl}
+                alt={selectedStaffDetail.fullName}
+                size="xl"
+                isOnline={selectedStaffDetail.isOnline}
+                showOnlineBadge={true}
+                showReticle={true}
+                neonBorder={selectedStaffDetail.isAdmin ? 'magenta' : 'mint'}
+                className="shadow-[0_0_16px_rgba(93,248,216,0.3)]"
+              />
               <div className="flex flex-col truncate">
                 <h3 className="text-base font-bold text-[#F5F5F5] truncate">
                   {selectedStaffDetail.fullName}

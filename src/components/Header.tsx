@@ -4,6 +4,7 @@ import { sound } from '../utils/audio';
 import { toPersianDigits } from '../utils/jalali';
 import { db } from '../services/db';
 import { getAssetUrl } from '../utils/assets';
+import { CyberAvatar } from './CyberAvatar';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -172,32 +173,29 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, activeTab, onLogout
           </button>
 
           {/* User Avatar & Status Pip */}
-          <div
-            className="relative flex items-center justify-center p-0.5 rounded-full bg-[#5DF8D8]/20 shadow-[0_0_12px_rgba(93,248,216,0.35)] cursor-pointer hover:scale-105 transition-transform"
+          <CyberAvatar
+            src={currentUser.avatarUrl}
+            alt={currentUser.fullName}
+            size="sm"
+            shape="chamfer"
+            isOnline={currentUser.isOnline}
+            showOnlineBadge={true}
+            neonBorder={currentUser.isAdmin ? 'magenta' : 'mint'}
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-          >
-            <img
-              alt={currentUser.fullName}
-              className="w-9 h-9 rounded-full object-cover"
-              src={getAssetUrl(currentUser.avatarUrl)}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
-              }}
-            />
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#5DF8D8] rounded-full ring-2 ring-[#0D0D0C]"></span>
-          </div>
+          />
 
           {/* Quick Profile Dropdown */}
           {showProfileMenu && (
             <div className="absolute left-0 top-12 w-64 bg-[#141413] border border-[#5DF8D8]/30 rounded-xl p-3 shadow-2xl z-50 flex flex-col gap-2.5 backdrop-blur-2xl [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)]">
               <div className="flex items-center gap-2 pb-2.5 border-b border-[#252523]">
-                <img
-                  src={getAssetUrl(currentUser.avatarUrl)}
+                <CyberAvatar
+                  src={currentUser.avatarUrl}
                   alt={currentUser.fullName}
-                  className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#5DF8D8]/40"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
-                  }}
+                  size="md"
+                  shape="chamfer"
+                  isOnline={currentUser.isOnline}
+                  showOnlineBadge={true}
+                  neonBorder={currentUser.isAdmin ? 'magenta' : 'mint'}
                 />
                 <div className="flex flex-col truncate text-right flex-1">
                   <span className="font-title-sm text-xs text-[#F5F5F5] font-bold truncate">

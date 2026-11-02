@@ -18,6 +18,7 @@ import { ChromaSwitch } from '../games/ChromaSwitch';
 import { CoreInjector } from '../games/CoreInjector';
 import { NeuralSequence } from '../games/NeuralSequence';
 import { getAssetUrl } from '../utils/assets';
+import { CyberAvatar } from './CyberAvatar';
 
 interface GameModalProps {
   gameId: GameId;
@@ -151,17 +152,15 @@ export const GameModal: React.FC<GameModalProps> = ({
           </div>
 
           <div className="flex items-center gap-space-sm">
-            <div className="relative flex items-center justify-center p-0.5 rounded-full bg-[#5DF8D8]/20">
-              <img
-                alt={currentUser.fullName}
-                className="w-7 h-7 rounded-full object-cover"
-                src={getAssetUrl(currentUser.avatarUrl)}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = getAssetUrl('/avatars/admin.svg');
-                }}
-              />
-              <span className="absolute bottom-0 right-0 w-2 h-2 bg-[#5DF8D8] rounded-full ring-2 ring-[#141413]"></span>
-            </div>
+            <CyberAvatar
+              src={currentUser.avatarUrl}
+              alt={currentUser.fullName}
+              size="xs"
+              shape="rounded"
+              neonBorder={currentUser.isAdmin ? 'magenta' : 'mint'}
+              isOnline={true}
+              showOnlineBadge={true}
+            />
           </div>
         </div>
       </header>
