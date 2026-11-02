@@ -10,7 +10,9 @@ export async function processCyberpunkPhoto(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (typeof fileOrDataUrl === 'string' && fileOrDataUrl.startsWith('http')) {
+      img.crossOrigin = 'anonymous';
+    }
 
     img.onload = () => {
       try {
