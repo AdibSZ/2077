@@ -154,7 +154,7 @@ export const BreachLock: React.FC<BreachLockProps> = ({ onScoreUpdate, onGameOve
 
       // Center Icon text
       ctx.fillStyle = '#F5F5F5';
-      ctx.font = 'bold 12px "JetBrains Mono"';
+      ctx.font = 'bold 12px "Peyda", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowBlur = 0;

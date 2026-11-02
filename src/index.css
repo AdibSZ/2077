@@ -2,10 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================================
+   SYS.2077 // PEYDA LOCAL WEBFONT DEFINITIONS (100% SELF-HOSTED & OFFLINE)
+   Renders both Persian and English text consistently across the entire app
+   ========================================================================= */
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Peyda';
+  src: url('/fonts/peyda/PeydaWeb-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
-  body {
+  html, body {
     background-color: #1D1D1B;
     color: #F5F5F5;
-    font-family: 'Vazirmatn', system-ui, sans-serif;
+    font-family: 'Peyda', system-ui, -apple-system, sans-serif;
+  }
+
+  button, input, select, textarea, span, p, h1, h2, h3, h4, h5, h6, label, div, a {
+    font-family: 'Peyda', system-ui, -apple-system, sans-serif;
   }
 }

@@ -11,10 +11,14 @@
     <link rel="apple-touch-icon" href="/brand/logo-magenta.png" />
     <title>پورتال و آرکید ۲۰۷۷ // SYS.2077</title>
     
-    <!-- Google Fonts: Vazirmatn, JetBrains Mono, Material Symbols Outlined -->
+    <!-- Preload Self-Hosted Peyda Webfont for instant render -->
+    <link rel="preload" href="/fonts/peyda/PeydaWeb-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/peyda/PeydaWeb-Bold.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Material Symbols Outlined (System Icons) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
     
     <style>
       html, body {
@@ -23,9 +27,12 @@
         padding: 0;
         background-color: #1D1D1B;
         color: #F5F5F5;
-        font-family: 'Vazirmatn', system-ui, sans-serif;
+        font-family: 'Peyda', system-ui, -apple-system, sans-serif;
         overscroll-behavior: none;
         -webkit-tap-highlight-color: transparent;
+      }
+      * {
+        font-family: 'Peyda', system-ui, -apple-system, sans-serif;
       }
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -41,7 +48,7 @@
       }
     </style>
   </head>
-  <body class="bg-[#1D1D1B] font-body-md text-[#F5F5F5] antialiased min-h-screen relative flex flex-col selection:bg-[#5DF8D8] selection:text-[#0A2821]">
+  <body class="bg-[#1D1D1B] font-sans text-[#F5F5F5] antialiased min-h-screen relative flex flex-col selection:bg-[#5DF8D8] selection:text-[#0A2821]">
     <!-- Cyber CRT Scanline Overlay -->
     <div class="fixed inset-0 pointer-events-none z-0 opacity-20 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.7)_51%)] bg-[length:100%_4px]"></div>
     <!-- Subtle Cyan Matrix Dot Grid -->

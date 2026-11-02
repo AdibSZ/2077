@@ -147,7 +147,7 @@ export const CoreInjector: React.FC<CoreInjectorProps> = ({ onScoreUpdate, onGam
       ctx.fill();
 
       ctx.fillStyle = '#F5F5F5';
-      ctx.font = 'bold 16px "JetBrains Mono"';
+      ctx.font = 'bold 16px "Peyda", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(state.score.toString(), centerX, centerY);
