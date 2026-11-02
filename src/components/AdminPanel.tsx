@@ -46,6 +46,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
   const [internalExt, setInternalExt] = useState('');
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isProcessingFilter, setIsProcessingFilter] = useState(false);
+  const [showStaffPassword, setShowStaffPassword] = useState(false);
+  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
 
   // Announcement states
   const [annTitle, setAnnTitle] = useState('');
@@ -203,7 +205,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
   const handleSubmitStaff = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName.trim() || !username.trim() || !password.trim()) {
+    const cleanFullName = fullName.trim();
+    const cleanUsername = username.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanFullName || !cleanUsername || !cleanPassword) {
       showToast('لطفاً کلیه فیلدهای نام، نام کاربری و رمز را تکمیل کنید.');
       return;
     }
@@ -212,10 +218,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
 
     try {
       if (editingId) {
+        // Guard against username collisions with other staff
+        const conflict = profiles.find(
+          (p) => p.id !== editingId && p.username.toLowerCase() === cleanUsername
+        );
+        if (conflict) {
+          showToast(`نام کاربری «${cleanUsername}» قبلاً برای «${conflict.fullName}» ثبت شده است!`);
+          return;
+        }
+
         await db.updateProfile(editingId, {
-          fullName,
-          roleTitle,
+          fullName: cleanFullName,
+          roleTitle: roleTitle.trim(),
           department,
+          username: cleanUsername,
+          passwordHash: cleanPassword,
           avatarUrl,
           birthDay: Number(birthDay),
           birthMonth,
@@ -226,14 +243,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
           internalExt: internalExt.trim() || undefined,
           isAdmin: isAdminUser,
         });
-        showToast(`مشخصات «${fullName}» با موفقیت ویرایش شد.`);
+        showToast(`مشخصات و رمز عبور «${cleanFullName}» با موفقیت ذخیره شد.`);
       } else {
         await db.addProfile({
-          fullName,
-          roleTitle,
+          fullName: cleanFullName,
+          roleTitle: roleTitle.trim(),
           department,
-          username: username.trim().toLowerCase(),
-          passwordHash: password.trim(),
+          username: cleanUsername,
+          passwordHash: cleanPassword,
           avatarUrl,
           birthDay: Number(birthDay),
           birthMonth,
@@ -245,7 +262,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
           isAdmin: isAdminUser,
           isOnline: true,
         });
-        showToast(`پرسنل جدید «${fullName}» در پایگاه داده ثبت شد.`);
+        showToast(`پرسنل جدید «${cleanFullName}» با نام کاربری ${cleanUsername} در پایگاه داده ثبت شد.`);
       }
 
       sound.play('score');
@@ -566,15 +583,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                 {/* Credentials */}
                 <div className="grid grid-cols-2 gap-space-sm">
                   <div className="flex flex-col gap-1 text-right">
-                    <label className="font-body-sm text-body-sm text-[#A3A39E] truncate">
-                      نام کاربری (Username)
+                    <label className="font-body-sm text-body-sm text-[#A3A39E] truncate flex items-center justify-between">
+                      <span>نام کاربری (شناسه ورود)</span>
+                      {editingId && <span className="text-[10px] text-[#5DF8D8]">قابل ویرایش</span>}
                     </label>
                     <input
                       className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-space-sm py-2 rounded-lg font-code-md text-code-md focus:outline-none focus:border-[#5DF8D8] text-left"
                       dir="ltr"
-                      placeholder="arash.2077"
+                      placeholder="مثال: arash یا 104"
                       required
-                      disabled={!!editingId}
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
@@ -582,18 +599,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                   </div>
 
                   <div className="flex flex-col gap-1 text-right">
-                    <label className="font-body-sm text-body-sm text-[#A3A39E] truncate">
-                      رمز عبور اختصاصی
+                    <label className="font-body-sm text-body-sm text-[#A3A39E] truncate flex items-center justify-between">
+                      <span>رمز عبور ورود</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowStaffPassword(!showStaffPassword)}
+                        className="text-[10px] text-[#5DF8D8] hover:underline"
+                      >
+                        {showStaffPassword ? 'مخفی‌سازی' : 'نمایش رمز'}
+                      </button>
                     </label>
-                    <input
-                      className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] px-space-sm py-2 rounded-lg font-code-md text-code-md focus:outline-none focus:border-[#5DF8D8] text-left tracking-wider"
-                      dir="ltr"
-                      placeholder="رمز ورود"
-                      required
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        className="w-full bg-[#0E0E0D] border border-[#5DF8D8]/30 text-[#F5F5F5] pl-space-sm pr-9 py-2 rounded-lg font-code-md text-code-md focus:outline-none focus:border-[#5DF8D8] text-left tracking-wider"
+                        dir="ltr"
+                        placeholder="رمز ورود"
+                        required
+                        type={showStaffPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowStaffPassword(!showStaffPassword)}
+                        className="absolute right-2 text-[#A3A39E] hover:text-[#5DF8D8] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {showStaffPassword ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -843,6 +878,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ profiles, onRefresh }) =
                       <span className="font-body-sm text-body-sm text-[#A3A39E] truncate">
                         {person.roleTitle} {person.internalExt && `(داخلی ${person.internalExt})`}
                       </span>
+
+                      {/* Explicit Login Credentials & Quick Info */}
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[11px]">
+                        <span className="font-code-md text-[#5DF8D8] bg-[#0E0E0D] px-1.5 py-0.5 rounded border border-[#5DF8D8]/20 flex items-center gap-1">
+                          <span className="text-[#A3A39E]">یوزر:</span>
+                          <strong>@{person.username}</strong>
+                        </span>
+
+                        <span className="font-code-md text-[#F62477] bg-[#0E0E0D] px-1.5 py-0.5 rounded border border-[#F62477]/30 flex items-center gap-1">
+                          <span className="text-[#A3A39E]">رمز:</span>
+                          <span>
+                            {revealedPasswords[person.id] ? person.passwordHash : '••••••'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              setRevealedPasswords((prev) => ({
+                                ...prev,
+                                [person.id]: !prev[person.id],
+                              }));
+                            }}
+                            className="text-[#5DF8D8] hover:text-white p-0.5 transition-colors"
+                            title="نمایش/مخفی‌سازی رمز"
+                          >
+                            <span className="material-symbols-outlined text-[13px] leading-none">
+                              {revealedPasswords[person.id] ? 'visibility_off' : 'visibility'}
+                            </span>
+                          </button>
+                        </span>
+
+                        {person.phoneNumber && (
+                          <span className="font-code-md text-[#A3A39E] text-[10px] hidden sm:inline">
+                            تماس: {person.phoneNumber}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

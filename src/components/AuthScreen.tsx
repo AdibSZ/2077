@@ -151,7 +151,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
               <div className="flex justify-between items-center px-1">
                 <label className="font-title-sm text-body-sm text-[#F5F5F5] flex items-center gap-1 font-semibold">
                   <span className="material-symbols-outlined text-[#5DF8D8] text-[16px]">badge</span>
-                  نام کاربری
+                  نام کاربری / شماره داخلی / همراه
                 </label>
                 <span className="font-tech-micro text-tech-micro text-[#9E9E9C] uppercase">
                   // USER_ID
@@ -163,9 +163,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                 </span>
                 <input
                   autoComplete="username"
-                  className="w-full bg-transparent py-space-md pl-space-md text-[#5DF8D8] font-code-md text-code-md placeholder:text-[#3A3A38] focus:outline-none transition-all placeholder:text-right"
+                  className="w-full bg-transparent py-space-md pl-space-md text-[#5DF8D8] font-code-md text-code-md placeholder:text-[#555551] focus:outline-none transition-all placeholder:text-right"
                   dir="ltr"
-                  placeholder="کد پرسنلی یا نام کاربری"
+                  placeholder="نام کاربری، شماره داخلی (مثال: 101) یا همراه"
                   required
                   type="text"
                   value={username}
@@ -267,16 +267,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                 <div className="mt-2 p-2.5 bg-[#1C1C1B] border border-[#5DF8D8]/30 rounded text-right text-xs text-[#F5F5F5] w-full flex flex-col gap-1.5 shadow-lg">
                   <div className="text-[#5DF8D8] font-bold flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
-                    حساب اولیه مدیریت فروشگاه:
+                    حساب اولیه مدیریت سیستم:
                   </div>
                   <div>
-                    نام کاربری: <code className="text-[#F62477] font-bold">admin</code>
+                    نام کاربری پیش‌فرض: <code className="text-[#F62477] font-bold">admin</code>
                   </div>
                   <div>
-                    رمز عبور: <code className="text-[#F62477] font-bold">cyber2077</code>
+                    رمز اولیه کارخانه: <code className="text-[#F62477] font-bold">cyber2077</code> (در صورت عدم تغییر)
                   </div>
                   <div className="text-[10px] text-[#A3A39E] mt-1 pt-1 border-t border-[#2F2F2D]">
-                    پس از ورود، می‌توانید پرسنل را اضافه کنید و در تب مدیریت دیتابیس، به Supabase متصل شوید.
+                    نکته: شما می‌توانید با هر یک از مشخصات (نام کاربری، شماره داخلی فروشگاه یا شماره موبایل) و اعداد فارسی یا انگلیسی وارد سیستم شوید.
                   </div>
                 </div>
               )}

@@ -6,7 +6,7 @@
 
 export async function processCyberpunkPhoto(
   fileOrDataUrl: File | string,
-  targetSize = 512
+  targetSize = 256
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -94,8 +94,8 @@ export async function processCyberpunkPhoto(
           ctx.fillRect(0, y, targetSize, 1.5);
         }
 
-        // 5. Output optimized WebP/JPEG dataUrl
-        const finalDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        // 5. Output optimized WebP/JPEG dataUrl (lightweight ~15-25KB)
+        const finalDataUrl = canvas.toDataURL('image/jpeg', 0.82);
         resolve(finalDataUrl);
       } catch (e) {
         reject(e);

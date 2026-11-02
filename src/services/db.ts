@@ -14,6 +14,39 @@ const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 let supabase: SupabaseClient | null = null;
 
+/**
+ * Universal Digits Normalizer: Maps Persian and Arabic digits to standard ASCII digits.
+ */
+export function normalizeDigits(val: string | number | undefined | null): string {
+  if (val === undefined || val === null) return '';
+  return String(val)
+    .replace(/[۰٠]/g, '0')
+    .replace(/[۱١]/g, '1')
+    .replace(/[۲٢]/g, '2')
+    .replace(/[۳٣]/g, '3')
+    .replace(/[۴٤]/g, '4')
+    .replace(/[۵٥]/g, '5')
+    .replace(/[۶٦]/g, '6')
+    .replace(/[۷٧]/g, '7')
+    .replace(/[۸٨]/g, '8')
+    .replace(/[۹٩]/g, '9');
+}
+
+/**
+ * Universal Text Normalizer: Normalizes digits, trims, unifies Arabic/Persian Yeh/Kaf,
+ * and strips invisible zero-width characters for flawless credential comparisons.
+ */
+export function normalizePersianText(val: string | undefined | null): string {
+  if (!val) return '';
+  return normalizeDigits(val)
+    .trim()
+    .toLowerCase()
+    .replace(/[\u200C\u200B\u200E\u200F\uFEFF]/g, '')
+    .replace(/[ي]/g, 'ی')
+    .replace(/[ك]/g, 'ک')
+    .replace(/\s+/g, ' ');
+}
+
 const STORAGE_KEYS = {
   VERSION: '2077_store_version_v2',
   AUTH_SESSION: '2077_auth_session',
@@ -284,9 +317,31 @@ class DatabaseService {
     return false;
   }
 
+  public reloadProfilesFromStorage() {
+    try {
+      const savedProfiles = localStorage.getItem(STORAGE_KEYS.PROFILES);
+      if (savedProfiles) {
+        const parsed = JSON.parse(savedProfiles);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.profiles = parsed;
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Storage reload warning:', e);
+    }
+    // Fallback to safe vault if primary key was empty/failed
+    this.tryRecoverFromSafeBackup();
+  }
+
   private saveProfilesLocally() {
     try {
       localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(this.profiles));
+    } catch (e) {
+      console.warn('Primary profiles localStorage save warning:', e);
+    }
+
+    try {
       // Continuous Safe Vault Backup to guarantee zero data loss
       localStorage.setItem(
         STORAGE_KEYS.SAFE_BACKUP,
@@ -297,8 +352,8 @@ class DatabaseService {
           timestamp: new Date().toISOString(),
         })
       );
-    } catch (e) {
-      console.warn('Profile save warning:', e);
+    } catch (backupErr) {
+      console.warn('Safe backup secondary save warning (quota limit):', backupErr);
     }
   }
 
@@ -594,6 +649,7 @@ class DatabaseService {
     if (!raw) return null;
     try {
       const user = JSON.parse(raw);
+      this.reloadProfilesFromStorage();
       const active = this.profiles.find((p) => p.id === user.id);
       return active || user;
     } catch {
@@ -602,12 +658,40 @@ class DatabaseService {
   }
 
   async login(username: string, password: string): Promise<{ user: UserProfile | null; error?: string }> {
-    const normalizedUsername = username.trim().toLowerCase();
+    this.reloadProfilesFromStorage();
 
-    // 1. Check local store
-    const localUser = this.profiles.find(
-      (p) => p.username.toLowerCase() === normalizedUsername && p.passwordHash === password.trim()
-    );
+    const rawUsername = (username || '').trim();
+    const rawPassword = (password || '').trim();
+
+    if (!rawUsername || !rawPassword) {
+      return { user: null, error: 'لطفاً نام کاربری و رمز عبور را وارد کنید!' };
+    }
+
+    const normUsername = normalizePersianText(rawUsername);
+    const digitsUsername = normalizeDigits(rawUsername);
+    const normPassword = normalizeDigits(rawPassword);
+    const normTextPassword = normalizePersianText(rawPassword);
+
+    // 1. Check local store with universal Persian/English & multi-identifier matching
+    const localUser = this.profiles.find((p) => {
+      // Password match check (handles Persian digits vs English digits & whitespaces)
+      const passMatches =
+        p.passwordHash === rawPassword ||
+        normalizeDigits(p.passwordHash) === normPassword ||
+        normalizePersianText(p.passwordHash) === normTextPassword;
+
+      if (!passMatches) return false;
+
+      // Identity match check: username, internal extension, phone, or full name
+      const userMatches =
+        p.username.toLowerCase() === rawUsername.toLowerCase() ||
+        normalizePersianText(p.username) === normUsername ||
+        (Boolean(p.internalExt) && normalizeDigits(p.internalExt) === digitsUsername) ||
+        (Boolean(p.phoneNumber) && normalizeDigits(p.phoneNumber) === digitsUsername) ||
+        normalizePersianText(p.fullName) === normUsername;
+
+      return userMatches;
+    });
 
     if (localUser) {
       localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(localUser));
@@ -620,41 +704,52 @@ class DatabaseService {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('username', normalizedUsername)
-          .eq('password_hash', password.trim())
-          .single();
+          .or(`username.eq.${rawUsername.toLowerCase()},phone_number.eq.${digitsUsername},internal_ext.eq.${digitsUsername}`);
 
-        if (data && !error) {
-          const user: UserProfile = {
-            id: data.id,
-            username: data.username,
-            passwordHash: data.password_hash,
-            fullName: data.full_name,
-            roleTitle: data.role_title,
-            department: data.department,
-            avatarUrl: data.avatar_url,
-            birthDay: data.birth_day,
-            birthMonth: data.birth_month,
-            birthMonthNum: data.birth_month_num,
-            birthYear: data.birth_year,
-            phoneNumber: data.phone_number,
-            internalExt: data.internal_ext,
-            isAdmin: data.is_admin,
-            isOnline: data.is_online,
-            shiftName: data.shift_name,
-            bankedXp: data.banked_xp,
-            crownsCount: data.crowns_count,
-            totalCp: data.total_cp,
-            pushSubscription: data.push_subscription,
-          };
+        if (data && !error && data.length > 0) {
+          const matched = data.find((row: any) => {
+            const rowPass = row.password_hash || '';
+            return (
+              rowPass === rawPassword ||
+              normalizeDigits(rowPass) === normPassword ||
+              normalizePersianText(rowPass) === normTextPassword
+            );
+          });
 
-          if (!this.profiles.some((p) => p.id === user.id)) {
-            this.profiles.push(user);
+          if (matched) {
+            const user: UserProfile = {
+              id: matched.id,
+              username: matched.username,
+              passwordHash: matched.password_hash,
+              fullName: matched.full_name,
+              roleTitle: matched.role_title,
+              department: matched.department,
+              avatarUrl: matched.avatar_url,
+              birthDay: matched.birth_day,
+              birthMonth: matched.birth_month,
+              birthMonthNum: matched.birth_month_num,
+              birthYear: matched.birth_year,
+              phoneNumber: matched.phone_number,
+              internalExt: matched.internal_ext,
+              isAdmin: matched.is_admin,
+              isOnline: matched.is_online,
+              shiftName: matched.shift_name,
+              bankedXp: matched.banked_xp,
+              crownsCount: matched.crowns_count,
+              totalCp: matched.total_cp,
+              pushSubscription: matched.push_subscription,
+            };
+
+            const idx = this.profiles.findIndex((p) => p.id === user.id);
+            if (idx >= 0) {
+              this.profiles[idx] = user;
+            } else {
+              this.profiles.push(user);
+            }
             this.saveProfilesLocally();
+            localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(user));
+            return { user };
           }
-
-          localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(user));
-          return { user };
         }
       } catch (e) {
         console.warn('Supabase login error:', e);
@@ -672,6 +767,7 @@ class DatabaseService {
   // PROFILES & STAFF HUB
   // -----------------------------------------------------------------------
   async getProfiles(): Promise<UserProfile[]> {
+    this.reloadProfilesFromStorage();
     if (supabase && this.isOnline()) {
       this.syncFromCloud();
     }
@@ -679,15 +775,25 @@ class DatabaseService {
   }
 
   async addProfile(profileData: Omit<UserProfile, 'id' | 'bankedXp' | 'crownsCount' | 'totalCp'>): Promise<UserProfile> {
-    const existing = this.profiles.find((p) => p.username.toLowerCase() === profileData.username.toLowerCase());
+    this.reloadProfilesFromStorage();
+
+    const cleanUsername = (profileData.username || '').trim().toLowerCase();
+    const cleanPassword = (profileData.passwordHash || '').trim();
+    const normUsername = normalizePersianText(cleanUsername);
+
+    const existing = this.profiles.find(
+      (p) => p.username.toLowerCase() === cleanUsername || normalizePersianText(p.username) === normUsername
+    );
     if (existing) {
-      throw new Error(`نام کاربری «${profileData.username}» قبلاً ثبت شده است!`);
+      throw new Error(`نام کاربری «${cleanUsername}» قبلاً برای پرسنل «${existing.fullName}» ثبت شده است!`);
     }
 
     const newId = '00000000-0000-0000-0000-' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
     const newProfile: UserProfile = {
       ...profileData,
       id: newId,
+      username: cleanUsername,
+      passwordHash: cleanPassword,
       bankedXp: 0,
       crownsCount: 0,
       totalCp: 0,
@@ -735,11 +841,21 @@ class DatabaseService {
   }
 
   async updateProfile(id: string, updates: Partial<UserProfile>): Promise<UserProfile> {
+    this.reloadProfilesFromStorage();
+
     const idx = this.profiles.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error('کاربر یافت نشد!');
 
-    const updated = { ...this.profiles[idx], ...updates };
-    updated.totalCp = updated.bankedXp + updated.crownsCount * 500;
+    const cleanUpdates: Partial<UserProfile> = { ...updates };
+    if (cleanUpdates.username) {
+      cleanUpdates.username = cleanUpdates.username.trim().toLowerCase();
+    }
+    if (cleanUpdates.passwordHash) {
+      cleanUpdates.passwordHash = cleanUpdates.passwordHash.trim();
+    }
+
+    const updated = { ...this.profiles[idx], ...cleanUpdates };
+    updated.totalCp = (updated.bankedXp || 0) + (updated.crownsCount || 0) * 500;
     this.profiles[idx] = updated;
     this.saveProfilesLocally();
 
@@ -749,6 +865,8 @@ class DatabaseService {
     }
 
     const cloudPayload = {
+      username: updated.username,
+      password_hash: updated.passwordHash,
       full_name: updated.fullName,
       role_title: updated.roleTitle,
       department: updated.department,
@@ -756,7 +874,7 @@ class DatabaseService {
       birth_day: updated.birthDay,
       birth_month: updated.birthMonth,
       birth_month_num: updated.birthMonthNum,
-      birthYear: updated.birthYear,
+      birth_year: updated.birthYear,
       phone_number: updated.phoneNumber,
       internal_ext: updated.internalExt,
       is_admin: updated.isAdmin,
