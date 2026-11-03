@@ -12,11 +12,25 @@ export class StorageVault {
   /**
    * Safely loads a key from storage with multi-layer recovery:
    * 1. Primary: localStorage
-   * 2. Secondary: Safe Vault Snapshot
+   * 2. Secondary: Safe Vault Snapshot (except auth session)
    * 3. Tertiary: sessionStorage mirror
    * 4. Quaternary: In-memory runtime cache
    */
   static getItem<T>(key: string, fallback: T): T {
+    // Auth session is transient and must never be recovered from backup snapshots
+    if (key === STORAGE_KEYS.AUTH_SESSION) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw !== null && raw !== undefined && raw.trim() !== '') {
+          const parsed = JSON.parse(raw);
+          this.memoryCache[key] = parsed;
+          return parsed as T;
+        }
+      } catch {}
+      delete this.memoryCache[key];
+      return fallback;
+    }
+
     try {
       const raw = localStorage.getItem(key);
       if (raw !== null && raw !== undefined && raw.trim() !== '') {
@@ -34,9 +48,7 @@ export class StorageVault {
       if (vaultRaw) {
         const snapshot: SafeVaultSnapshot = JSON.parse(vaultRaw);
         if (snapshot && snapshot.data && snapshot.data[key] !== undefined) {
-          console.info(`[Vault] Successfully recovered key "${key}" from Safe Vault Snapshot.`);
           const recovered = snapshot.data[key];
-          // Restore primary localStorage so subsequent reads are direct
           localStorage.setItem(key, JSON.stringify(recovered));
           this.memoryCache[key] = recovered;
           return recovered as T;
@@ -88,18 +100,32 @@ export class StorageVault {
       sessionStorage.setItem(key, jsonStr);
     } catch {}
 
-    // Update Safe Vault Snapshot
-    this.updateSnapshot(key, value);
+    // Never store auth session in safe snapshot
+    if (key !== STORAGE_KEYS.AUTH_SESSION) {
+      this.updateSnapshot(key, value);
+    }
   }
 
   /**
-   * Removes a key safely
+   * Removes a key safely from all storage tiers and safe backup snapshot.
    */
   static removeItem(key: string): void {
     delete this.memoryCache[key];
     try {
       localStorage.removeItem(key);
+    } catch {}
+    try {
       sessionStorage.removeItem(key);
+    } catch {}
+    try {
+      const vaultRaw = localStorage.getItem(STORAGE_KEYS.SAFE_BACKUP);
+      if (vaultRaw) {
+        const snapshot: SafeVaultSnapshot = JSON.parse(vaultRaw);
+        if (snapshot && snapshot.data && snapshot.data[key] !== undefined) {
+          delete snapshot.data[key];
+          localStorage.setItem(STORAGE_KEYS.SAFE_BACKUP, JSON.stringify(snapshot));
+        }
+      }
     } catch {}
   }
 
@@ -107,6 +133,8 @@ export class StorageVault {
    * Updates the persistent multi-table vault snapshot to guarantee zero data loss.
    */
   private static updateSnapshot(key: string, value: any): void {
+    if (key === STORAGE_KEYS.AUTH_SESSION) return;
+
     try {
       let currentSnapshot: SafeVaultSnapshot = {
         timestamp: new Date().toISOString(),

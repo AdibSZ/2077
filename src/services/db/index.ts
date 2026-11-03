@@ -5,7 +5,6 @@ import { ProfileService } from './profileService';
 import { TaskService } from './taskService';
 import { AnnouncementService } from './announcementService';
 import { GameScoreService, GameScoreRecord } from './gameScoreService';
-import { CloudSyncService } from './cloudSync';
 
 export { normalizeDigits, normalizePersianText, STORAGE_KEYS, StorageVault };
 
@@ -14,19 +13,12 @@ class DatabaseService {
   private tasksService: TaskService;
   private announcementsService: AnnouncementService;
   private gameScoresService: GameScoreService;
-  private cloudSyncService: CloudSyncService;
 
   constructor() {
-    this.cloudSyncService = new CloudSyncService();
-
-    const enqueue = (item: any) => {
-      this.cloudSyncService.enqueue(item);
-    };
-
-    this.profilesService = new ProfileService(enqueue);
-    this.tasksService = new TaskService(enqueue);
-    this.announcementsService = new AnnouncementService(enqueue);
-    this.gameScoresService = new GameScoreService(enqueue);
+    this.profilesService = new ProfileService();
+    this.tasksService = new TaskService();
+    this.announcementsService = new AnnouncementService();
+    this.gameScoresService = new GameScoreService();
   }
 
   // --- Profile & Authentication Methods ---
@@ -43,13 +35,7 @@ class DatabaseService {
   }
 
   async login(username: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
-    let user = this.profilesService.verifyLogin(username, pass);
-    if (!user) {
-      try {
-        await this.cloudSyncService.pullFromCloud();
-        user = this.profilesService.verifyLogin(username, pass);
-      } catch {}
-    }
+    const user = this.profilesService.verifyLogin(username, pass);
     if (!user) {
       return { user: null, error: 'نام کاربری یا رمز عبور اشتباه است.' };
     }
@@ -166,43 +152,54 @@ class DatabaseService {
     return this.gameScoresService.calculateCp(gameId, score);
   }
 
-  // --- Cloud Sync & DB Diagnostics ---
+  // --- Local DB Diagnostics ---
   getDatabaseStats(): DatabaseStats {
     const profiles = this.profilesService.getProfiles();
     const scores = this.gameScoresService.getGameScores();
     const tasks = this.tasksService.getTasks();
-    return this.cloudSyncService.getDatabaseStats(profiles.length, Object.keys(scores).length, tasks.length);
-  }
+    let sizeBytes = 0;
+    try {
+      sizeBytes += (localStorage.getItem(STORAGE_KEYS.PROFILES) || '').length * 2;
+      sizeBytes += (localStorage.getItem(STORAGE_KEYS.GAME_SCORES) || '').length * 2;
+      sizeBytes += (localStorage.getItem(STORAGE_KEYS.TASKS) || '').length * 2;
+      sizeBytes += (localStorage.getItem(STORAGE_KEYS.ANNOUNCEMENTS) || '').length * 2;
+    } catch {}
 
-  getSyncState() {
-    return this.cloudSyncService.getSyncState();
+    return {
+      mode: 'local',
+      supabaseConnected: false,
+      profilesCount: profiles.length,
+      gameScoresCount: Object.keys(scores).length,
+      tasksCount: tasks.length,
+      announcementsCount: 1,
+      storageSizeKb: Math.max(1, Math.round(sizeBytes / 1024)),
+      pendingSyncCount: 0,
+    };
   }
 
   getNetworkSyncState() {
-    return this.cloudSyncService.getSyncState();
+    return {
+      isOnline: navigator.onLine,
+      isSyncing: false,
+      cloudConnected: false,
+      pendingCount: 0,
+      lastSyncTime: null,
+    };
   }
 
-  subscribeSyncState(listener: (state: any) => void): () => void {
-    return this.cloudSyncService.subscribeSyncState(listener);
+  subscribeSyncState(_listener: (state: any) => void): () => void {
+    return () => {};
   }
 
-  flushSyncQueue() {
-    return this.cloudSyncService.flushSyncQueue();
-  }
-
-  getSupabaseConfig() {
-    return this.cloudSyncService.getSupabaseConfig();
-  }
-
-  async configureSupabase(url: string, key: string) {
-    return this.cloudSyncService.configureSupabase(url, key);
+  async flushSyncQueue() {
+    return { syncedCount: 0, failedCount: 0 };
   }
 
   exportDatabaseJson(): string {
     const payload = {
       exportMetadata: {
         app: '2077 Family Portal & Arcade',
-        version: '2.5.0',
+        version: '2.6.1',
         exportedAt: new Date().toISOString(),
       },
       profiles: this.profilesService.getProfiles(),

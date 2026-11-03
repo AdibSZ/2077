@@ -7,14 +7,8 @@ export const STORAGE_KEYS = {
   GAME_SCORES: '2077_game_scores_data',
   ANNOUNCEMENTS: '2077_announcements_data',
   TASKS: '2077_tasks_data',
-  SUPABASE_CONFIG: '2077_supabase_runtime_config',
-  SYNC_QUEUE: '2077_sync_pending_queue',
-  LAST_SYNC: '2077_last_cloud_sync_time',
   SAFE_BACKUP: '2077_safe_vault_backup',
 };
-
-export const DEFAULT_SUPABASE_URL = 'https://amagwazaghpklidmmiba.supabase.co';
-export const DEFAULT_SUPABASE_KEY = 'sb_publishable_GTg587mUBT7SH6PQ7naFVg_g2RStdGL';
 
 /**
  * Universal Digits Normalizer: Maps Persian and Arabic digits to standard ASCII digits.

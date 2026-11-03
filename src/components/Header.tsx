@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, ActiveTab, NetworkSyncState } from '../types';
+import { UserProfile, ActiveTab } from '../types';
 import { sound } from '../utils/audio';
 import { toPersianDigits } from '../utils/jalali';
-import { db } from '../services/db';
 import { getAssetUrl } from '../utils/assets';
 import { CyberAvatar } from './CyberAvatar';
 import { CheckUpdateButton } from './CheckUpdateButton';
@@ -27,34 +26,24 @@ export const Header: React.FC<HeaderProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [liveTime, setLiveTime] = useState('');
-  const [syncState, setSyncState] = useState<NetworkSyncState>(() => db.getNetworkSyncState());
-  const [syncNotice, setSyncNotice] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. Clock update
     const updateTime = () => {
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('fa-IR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      });
-      setLiveTime(timeStr);
+      setLiveTime(
+        now.toLocaleTimeString('fa-IR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
     };
 
     updateTime();
     const timer = setInterval(updateTime, 1000);
-
-    // 2. Subscribe to sync and network changes
-    const unsubscribe = db.subscribeSyncState((newState) => {
-      setSyncState(newState);
-    });
-
-    return () => {
-      clearInterval(timer);
-      unsubscribe();
-    };
+    return () => clearInterval(timer);
   }, []);
 
   const handleToggleAudio = () => {
@@ -63,20 +52,6 @@ export const Header: React.FC<HeaderProps> = ({
     if (!nextMuted) {
       sound.play('tap');
     }
-  };
-
-  const handleManualSync = async () => {
-    sound.play('tap');
-    const res = await db.flushSyncQueue();
-    if (res.syncedCount > 0) {
-      sound.play('score');
-      setSyncNotice(`همگام‌سازی ابری انجام شد (${toPersianDigits(res.syncedCount)} رکورد ارسال شد)`);
-    } else {
-      setSyncNotice('داده‌های محلی با سرور ابری کاملاً همگام هستند.');
-    }
-    setTimeout(() => {
-      setSyncNotice(null);
-    }, 3000);
   };
 
   const getTabTitle = () => {
@@ -107,21 +82,9 @@ export const Header: React.FC<HeaderProps> = ({
               SYS.2077 // فروشگاه مرکزی
             </span>
             <div className="flex items-center gap-space-xs mt-0.5">
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  !syncState.isOnline
-                    ? 'bg-[#E5A93C] shadow-[0_0_8px_#E5A93C]'
-                    : syncState.cloudConnected
-                    ? 'bg-[#5DF8D8] shadow-[0_0_8px_#5DF8D8] animate-pulse'
-                    : 'bg-[#5DF8D8]'
-                }`}
-              ></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#5DF8D8] shadow-[0_0_8px_#5DF8D8]" />
               <span className="font-tech-micro text-tech-micro text-[#9E9E9C]">
-                {!syncState.isOnline
-                  ? 'حالت آفلاین (بازی‌ها محلی ذخیره می‌شوند)'
-                  : syncState.cloudConnected
-                  ? 'متصل به سرور ابری'
-                  : 'پایگاه داده مستقل'} // {liveTime}
+                پایگاه داده محلی ایمن // {liveTime}
               </span>
             </div>
           </div>
@@ -134,43 +97,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="font-title-sm text-xs text-[#F5F5F5] font-bold">{getTabTitle()}</span>
           </div>
 
-          {/* Interactive Cloud Sync Button / Badge */}
-          <button
-            onClick={handleManualSync}
-            disabled={syncState.isSyncing}
-            title={
-              !syncState.isOnline
-                ? 'در حالت آفلاین؛ رکوردها پس از اتصال اینترنت خودکار ارسال می‌شوند'
-                : syncState.pendingCount > 0
-                ? `${toPersianDigits(syncState.pendingCount)} رکورد در صف ارسال؛ جهت ارسال فوری کلیک کنید`
-                : 'همگام‌سازی دستی با سرور ابری'
-            }
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs transition-all active:scale-95 ${
-              syncState.pendingCount > 0
-                ? 'bg-[#F62477]/20 border-[#F62477]/50 text-[#F62477] animate-pulse'
-                : !syncState.isOnline
-                ? 'bg-[#E5A93C]/15 border-[#E5A93C]/40 text-[#E5A93C]'
-                : 'bg-[#141413] border-[#5DF8D8]/25 text-[#5DF8D8] hover:border-[#5DF8D8]'
-            }`}
-          >
-            <span
-              className={`material-symbols-outlined text-[16px] ${
-                syncState.isSyncing ? 'animate-spin' : ''
-              }`}
-            >
-              sync
-            </span>
-            <span className="font-tech-micro text-[10px] hidden xs:inline">
-              {syncState.isSyncing
-                ? 'در حال ارسال...'
-                : syncState.pendingCount > 0
-                ? `${toPersianDigits(syncState.pendingCount)} در صف`
-                : !syncState.isOnline
-                ? 'آفلاین'
-                : 'ابری'}
-            </span>
-          </button>
-
           {/* Notification Center Trigger Button */}
           <button
             onClick={onOpenNotifications}
@@ -181,8 +107,8 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="material-symbols-outlined text-[18px]">notifications</span>
             {unreadNotificationCount > 0 && (
               <>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F62477] animate-ping pointer-events-none"></span>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F62477] border border-[#141413] pointer-events-none"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F62477] animate-ping pointer-events-none" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F62477] border border-[#141413] pointer-events-none" />
               </>
             )}
           </button>
@@ -200,7 +126,12 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Manual Update Check Button */}
-          <CheckUpdateButton onStatusMessage={(msg) => { setSyncNotice(msg); setTimeout(() => setSyncNotice(null), 3500); }} />
+          <CheckUpdateButton
+            onStatusMessage={(msg) => {
+              setNoticeMessage(msg);
+              setTimeout(() => setNoticeMessage(null), 3500);
+            }}
+          />
 
           {/* User Avatar & Status Pip */}
           <CyberAvatar
@@ -251,16 +182,15 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>وضعیت همگام‌سازی:</span>
-                  <span className="text-[#5DF8D8]">
-                    {syncState.pendingCount > 0
-                      ? `${toPersianDigits(syncState.pendingCount)} مورد در صف`
-                      : 'کاملاً به‌روز'}
+                  <span>نقش کاربری:</span>
+                  <span className="text-[#5DF8D8] truncate max-w-[120px]">
+                    {currentUser.roleTitle}
                   </span>
                 </div>
               </div>
 
               <button
+                type="button"
                 onClick={() => {
                   setShowProfileMenu(false);
                   onLogout();
@@ -268,17 +198,17 @@ export const Header: React.FC<HeaderProps> = ({
                 className="w-full mt-1 py-2 px-3 bg-[#F62477]/15 hover:bg-[#F62477] text-[#F62477] hover:text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-[0_0_10px_rgba(246,36,119,0.2)] active:scale-95"
               >
                 <span className="material-symbols-outlined text-[16px]">logout</span>
-                <span>خروج از پایانه (Logout)</span>
+                <span>خروج از حساب (Logout)</span>
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Sync toast notification if triggered */}
-      {syncNotice && (
+      {/* Toast notification if triggered */}
+      {noticeMessage && (
         <div className="absolute top-20 left-0 right-0 py-1.5 px-4 bg-[#5DF8D8] text-[#0A2821] text-xs font-bold text-center shadow-lg animate-pulse transition-all">
-          {syncNotice}
+          {noticeMessage}
         </div>
       )}
     </header>

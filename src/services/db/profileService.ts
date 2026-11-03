@@ -5,16 +5,10 @@ import { StorageVault } from './vault';
 export class ProfileService {
   private profiles: UserProfile[];
   private currentUser: UserProfile | null = null;
-  private onQueueChange?: (item: any) => void;
 
-  constructor(onQueueChange?: (item: any) => void) {
-    this.onQueueChange = onQueueChange;
+  constructor() {
     this.profiles = StorageVault.getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
     this.currentUser = StorageVault.getItem<UserProfile | null>(STORAGE_KEYS.AUTH_SESSION, null);
-  }
-
-  setQueueCallback(cb: (item: any) => void) {
-    this.onQueueChange = cb;
   }
 
   getProfiles(): UserProfile[] {
@@ -23,18 +17,16 @@ export class ProfileService {
   }
 
   getProfileById(id: string): UserProfile | undefined {
-    return this.profiles.find((p) => p.id === id);
+    return this.getProfiles().find((p) => p.id === id);
   }
 
   getProfileByUsername(rawUsername: string): UserProfile | undefined {
     const clean = normalizePersianText(rawUsername);
-    return this.profiles.find((p) => normalizePersianText(p.username) === clean);
+    return this.getProfiles().find((p) => normalizePersianText(p.username) === clean);
   }
 
   getCurrentUser(): UserProfile | null {
-    if (!this.currentUser) {
-      this.currentUser = StorageVault.getItem<UserProfile | null>(STORAGE_KEYS.AUTH_SESSION, null);
-    }
+    this.currentUser = StorageVault.getItem<UserProfile | null>(STORAGE_KEYS.AUTH_SESSION, null);
     return this.currentUser;
   }
 
@@ -46,6 +38,10 @@ export class ProfileService {
   clearAuthSession() {
     this.currentUser = null;
     StorageVault.removeItem(STORAGE_KEYS.AUTH_SESSION);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+      sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+    } catch {}
   }
 
   logout() {
@@ -56,7 +52,7 @@ export class ProfileService {
     const cleanUsername = normalizePersianText(rawUsername);
     const cleanPassword = normalizePersianText(rawPassword);
 
-    // Refresh from storage to ensure we have latest saved profiles
+    // Refresh from storage to guarantee latest profiles are inspected
     this.profiles = this.getProfiles();
 
     const matched = this.profiles.find((p) => {
@@ -81,6 +77,7 @@ export class ProfileService {
       totalCp?: number;
     }
   ): Promise<UserProfile> {
+    this.profiles = this.getProfiles();
     const newId = profile.id || `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const fullProfile: UserProfile = {
       ...profile,
@@ -94,18 +91,11 @@ export class ProfileService {
 
     this.profiles.push(fullProfile);
     this.saveProfilesLocally();
-
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'profile_update',
-        payload: { id: fullProfile.id, updates: fullProfile },
-      });
-    }
-
     return fullProfile;
   }
 
   async updateProfile(id: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
+    this.profiles = this.getProfiles();
     const index = this.profiles.findIndex((p) => p.id === id);
     if (index === -1) return null;
 
@@ -129,17 +119,11 @@ export class ProfileService {
       this.setAuthSession(updated);
     }
 
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'profile_update',
-        payload: { id, updates: updated },
-      });
-    }
-
     return updated;
   }
 
   async deleteProfile(id: string): Promise<boolean> {
+    this.profiles = this.getProfiles();
     const prevLength = this.profiles.length;
     this.profiles = this.profiles.filter((p) => p.id !== id);
     if (this.profiles.length !== prevLength) {

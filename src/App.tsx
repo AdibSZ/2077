@@ -38,10 +38,6 @@ export function App() {
 
   useEffect(() => {
     loadData();
-    const unsub = db.subscribeSyncState(() => {
-      loadData();
-    });
-    return () => unsub();
   }, []);
 
   const handleLoginSuccess = (user: UserProfile) => {
@@ -102,7 +98,7 @@ export function App() {
         currentUser={currentUser}
         activeTab={activeTab}
         onLogout={handleLogout}
-        onOpenNotifications={() => setIsNotificationModalOpen(true)}
+        onOpenNotifications={() => setIsNotificationModalOpen(false)}
         unreadNotificationCount={unreadNoticeCount}
       />
 

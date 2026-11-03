@@ -4,15 +4,9 @@ import { StorageVault } from './vault';
 
 export class TaskService {
   private tasks: Task[];
-  private onQueueChange?: (item: any) => void;
 
-  constructor(onQueueChange?: (item: any) => void) {
-    this.onQueueChange = onQueueChange;
+  constructor() {
     this.tasks = StorageVault.getItem<Task[]>(STORAGE_KEYS.TASKS, INITIAL_TASKS);
-  }
-
-  setQueueCallback(cb: (item: any) => void) {
-    this.onQueueChange = cb;
   }
 
   getTasks(): Task[] {
@@ -31,6 +25,7 @@ export class TaskService {
   async addTask(
     task: Omit<Task, 'id' | 'createdAt' | 'isCompleted'> & { id?: string; isCompleted?: boolean }
   ): Promise<Task> {
+    this.tasks = this.getTasks();
     const newTask: Task = {
       ...task,
       id: task.id || `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -40,18 +35,11 @@ export class TaskService {
 
     this.tasks.unshift(newTask);
     this.saveTasksLocally();
-
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'task_add',
-        payload: newTask,
-      });
-    }
-
     return newTask;
   }
 
   async toggleTaskCompleted(taskId: string, user: UserProfile): Promise<Task | null> {
+    this.tasks = this.getTasks();
     const index = this.tasks.findIndex((t) => t.id === taskId);
     if (index === -1) return null;
 
@@ -78,18 +66,11 @@ export class TaskService {
 
     this.tasks[index] = updated;
     this.saveTasksLocally();
-
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'task_toggle',
-        payload: { id: taskId, isCompleted: updated.isCompleted },
-      });
-    }
-
     return updated;
   }
 
   async deleteTask(taskId: string): Promise<boolean> {
+    this.tasks = this.getTasks();
     const prevLength = this.tasks.length;
     this.tasks = this.tasks.filter((t) => t.id !== taskId);
     if (this.tasks.length !== prevLength) {

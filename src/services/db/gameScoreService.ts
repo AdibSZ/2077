@@ -23,15 +23,9 @@ export const GAME_CP_MULTIPLIERS: Record<GameId, number> = {
 
 export class GameScoreService {
   private gameScores: Record<string, GameScoreRecord>;
-  private onQueueChange?: (item: any) => void;
 
-  constructor(onQueueChange?: (item: any) => void) {
-    this.onQueueChange = onQueueChange;
+  constructor() {
     this.gameScores = StorageVault.getItem<Record<string, GameScoreRecord>>(STORAGE_KEYS.GAME_SCORES, {});
-  }
-
-  setQueueCallback(cb: (item: any) => void) {
-    this.onQueueChange = cb;
   }
 
   getGameScores(): Record<string, GameScoreRecord> {
@@ -100,19 +94,12 @@ export class GameScoreService {
 
     const updatedUser = profiles[userIndex];
 
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'game_score',
-        payload: { userId, gameId, sessionScore, multiplier },
-      });
-    }
-
     return {
       earnedXp,
       newHighScore: sessionScore > prevBestScore,
       newCrown,
       totalCp: updatedUser.totalCp,
-      queuedOffline: true,
+      queuedOffline: false,
     };
   }
 

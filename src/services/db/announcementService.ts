@@ -4,15 +4,9 @@ import { StorageVault } from './vault';
 
 export class AnnouncementService {
   private announcement: Announcement;
-  private onQueueChange?: (item: any) => void;
 
-  constructor(onQueueChange?: (item: any) => void) {
-    this.onQueueChange = onQueueChange;
+  constructor() {
     this.announcement = StorageVault.getItem<Announcement>(STORAGE_KEYS.ANNOUNCEMENTS, INITIAL_ANNOUNCEMENT);
-  }
-
-  setQueueCallback(cb: (item: any) => void) {
-    this.onQueueChange = cb;
   }
 
   getAnnouncement(): Announcement {
@@ -35,14 +29,6 @@ export class AnnouncementService {
     };
 
     this.saveAnnouncementLocally();
-
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'announcement',
-        payload: this.announcement,
-      });
-    }
-
     return this.announcement;
   }
 
@@ -68,14 +54,6 @@ export class AnnouncementService {
     };
 
     this.saveAnnouncementLocally();
-
-    if (this.onQueueChange) {
-      this.onQueueChange({
-        type: 'announcement',
-        payload: this.announcement,
-      });
-    }
-
     return this.announcement;
   }
 
