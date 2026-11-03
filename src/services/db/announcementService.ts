@@ -1,11 +1,14 @@
 import { Announcement } from '../../types';
 import { STORAGE_KEYS, INITIAL_ANNOUNCEMENT } from './storageKeys';
 import { StorageVault } from './vault';
+import { generateUUID, isUUID } from './supabaseClient';
 
 export class AnnouncementService {
   private announcement: Announcement;
+  private onCloudSave?: (a: Announcement) => Promise<boolean>;
 
-  constructor() {
+  constructor(onCloudSave?: (a: Announcement) => Promise<boolean>) {
+    this.onCloudSave = onCloudSave;
     this.announcement = StorageVault.getItem<Announcement>(STORAGE_KEYS.ANNOUNCEMENTS, INITIAL_ANNOUNCEMENT);
   }
 
@@ -19,8 +22,9 @@ export class AnnouncementService {
     content: string,
     priority: 'عادی' | 'مهم' | 'فوری' = 'عادی'
   ): Promise<Announcement> {
+    const safeId = this.announcement.id && isUUID(this.announcement.id) ? this.announcement.id : generateUUID();
     this.announcement = {
-      id: `ann-${Date.now()}`,
+      id: safeId,
       title,
       content,
       priority,
@@ -29,6 +33,11 @@ export class AnnouncementService {
     };
 
     this.saveAnnouncementLocally();
+
+    if (this.onCloudSave) {
+      this.onCloudSave(this.announcement).catch(() => {});
+    }
+
     return this.announcement;
   }
 
@@ -44,8 +53,9 @@ export class AnnouncementService {
   }
 
   async clearAnnouncement(): Promise<Announcement> {
+    const safeId = this.announcement.id && isUUID(this.announcement.id) ? this.announcement.id : generateUUID();
     this.announcement = {
-      id: `ann-${Date.now()}`,
+      id: safeId,
       title: 'تابلوی اعلانات فروشگاه ۲۰۷۷',
       content: '',
       priority: 'عادی',
@@ -54,6 +64,11 @@ export class AnnouncementService {
     };
 
     this.saveAnnouncementLocally();
+
+    if (this.onCloudSave) {
+      this.onCloudSave(this.announcement).catch(() => {});
+    }
+
     return this.announcement;
   }
 

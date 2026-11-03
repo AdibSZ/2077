@@ -5,6 +5,8 @@ import { ProfileService } from './profileService';
 import { TaskService } from './taskService';
 import { AnnouncementService } from './announcementService';
 import { GameScoreService, GameScoreRecord } from './gameScoreService';
+import { CloudSyncService } from './cloudSync';
+import { SUPABASE_URL } from './supabaseClient';
 
 export { normalizeDigits, normalizePersianText, STORAGE_KEYS, StorageVault };
 
@@ -13,12 +15,28 @@ class DatabaseService {
   private tasksService: TaskService;
   private announcementsService: AnnouncementService;
   private gameScoresService: GameScoreService;
+  private cloudSyncService: CloudSyncService;
 
   constructor() {
-    this.profilesService = new ProfileService();
-    this.tasksService = new TaskService();
-    this.announcementsService = new AnnouncementService();
-    this.gameScoresService = new GameScoreService();
+    this.cloudSyncService = new CloudSyncService();
+
+    this.profilesService = new ProfileService(
+      (p) => this.cloudSyncService.saveProfile(p),
+      (id) => this.cloudSyncService.deleteProfile(id)
+    );
+
+    this.tasksService = new TaskService(
+      (t) => this.cloudSyncService.saveTask(t),
+      (id) => this.cloudSyncService.deleteTask(id)
+    );
+
+    this.announcementsService = new AnnouncementService((a) =>
+      this.cloudSyncService.saveAnnouncement(a)
+    );
+
+    this.gameScoresService = new GameScoreService((gameId, userId, score) =>
+      this.cloudSyncService.saveGameScore(gameId, userId, score)
+    );
   }
 
   // --- Profile & Authentication Methods ---
@@ -35,7 +53,13 @@ class DatabaseService {
   }
 
   async login(username: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
-    const user = this.profilesService.verifyLogin(username, pass);
+    let user = this.profilesService.verifyLogin(username, pass);
+    if (!user) {
+      try {
+        await this.cloudSyncService.pullAllFromCloud();
+        user = this.profilesService.verifyLogin(username, pass);
+      } catch {}
+    }
     if (!user) {
       return { user: null, error: 'نام کاربری یا رمز عبور اشتباه است.' };
     }
@@ -152,7 +176,7 @@ class DatabaseService {
     return this.gameScoresService.calculateCp(gameId, score);
   }
 
-  // --- Local DB Diagnostics ---
+  // --- Cloud Sync & DB Diagnostics ---
   getDatabaseStats(): DatabaseStats {
     const profiles = this.profilesService.getProfiles();
     const scores = this.gameScoresService.getGameScores();
@@ -166,8 +190,9 @@ class DatabaseService {
     } catch {}
 
     return {
-      mode: 'local',
-      supabaseConnected: false,
+      mode: 'supabase',
+      supabaseConnected: true,
+      supabaseUrl: SUPABASE_URL,
       profilesCount: profiles.length,
       gameScoresCount: Object.keys(scores).length,
       tasksCount: tasks.length,
@@ -178,28 +203,22 @@ class DatabaseService {
   }
 
   getNetworkSyncState() {
-    return {
-      isOnline: navigator.onLine,
-      isSyncing: false,
-      cloudConnected: false,
-      pendingCount: 0,
-      lastSyncTime: null,
-    };
+    return this.cloudSyncService.getSyncState();
   }
 
-  subscribeSyncState(_listener: (state: any) => void): () => void {
-    return () => {};
+  subscribeSyncState(listener: (state: any) => void): () => void {
+    return this.cloudSyncService.subscribeSyncState(listener);
   }
 
-  async flushSyncQueue() {
-    return { syncedCount: 0, failedCount: 0 };
+  flushSyncQueue() {
+    return this.cloudSyncService.pullAllFromCloud();
   }
 
   exportDatabaseJson(): string {
     const payload = {
       exportMetadata: {
         app: '2077 Family Portal & Arcade',
-        version: '2.6.1',
+        version: '2.6.2',
         exportedAt: new Date().toISOString(),
       },
       profiles: this.profilesService.getProfiles(),
@@ -221,6 +240,11 @@ class DatabaseService {
       if (parsed.gameScores) this.gameScoresService.setScoresFromRemote(parsed.gameScores);
       if (parsed.tasks) this.tasksService.setTasksFromRemote(parsed.tasks);
       if (parsed.announcement) this.announcementsService.setAnnouncementFromRemote(parsed.announcement);
+
+      // Also sync all to cloud
+      parsed.profiles.forEach((p: any) => this.cloudSyncService.saveProfile(p));
+      parsed.tasks?.forEach((t: any) => this.cloudSyncService.saveTask(t));
+      if (parsed.announcement) this.cloudSyncService.saveAnnouncement(parsed.announcement);
 
       return {
         success: true,

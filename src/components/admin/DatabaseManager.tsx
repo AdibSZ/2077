@@ -13,6 +13,7 @@ interface DatabaseManagerProps {
 export const DatabaseManager: React.FC<DatabaseManagerProps> = ({ onRefresh, showToast }) => {
   const [dbStats, setDbStats] = useState<DatabaseStats | null>(null);
   const [rawTableViewer, setRawTableViewer] = useState<'none' | 'profiles' | 'tasks'>('none');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const refreshDbStats = () => {
     const stats = db.getDatabaseStats();
@@ -22,6 +23,23 @@ export const DatabaseManager: React.FC<DatabaseManagerProps> = ({ onRefresh, sho
   useEffect(() => {
     refreshDbStats();
   }, []);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    sound.play('tap');
+    try {
+      await db.flushSyncQueue();
+      sound.play('score');
+      triggerHaptic('success');
+      showToast('اطلاعات با سرور ابری Supabase همگام‌سازی شد.');
+      refreshDbStats();
+      onRefresh();
+    } catch {
+      showToast('خطا در برقراری ارتباط با سرور ابری');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleExportBackup = () => {
     const jsonStr = db.exportDatabaseJson();
@@ -65,24 +83,25 @@ export const DatabaseManager: React.FC<DatabaseManagerProps> = ({ onRefresh, sho
       <section className="bg-[#141413] border border-[#5DF8D8]/30 p-space-md rounded-xl flex flex-col gap-3 shadow-xl">
         <div className="flex items-center justify-between border-b border-[#252523] pb-2">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#5DF8D8] text-[22px]">database</span>
+            <span className="material-symbols-outlined text-[#5DF8D8] text-[22px]">cloud_done</span>
             <h3 className="font-title-sm text-base text-[#F5F5F5] font-bold">
-              وضعیت موتور دیتابیس (Safe Vault Engine)
+              وضعیت موتور ابری دیتابیس (Cloud Engine)
             </h3>
           </div>
-          <span className="text-xs px-2.5 py-1 rounded font-bold bg-[#5DF8D8]/20 text-[#5DF8D8] border border-[#5DF8D8]/40">
-            پایگاه داده مستقل دستگاه (Zero Data Loss)
+          <span className="text-xs px-2.5 py-1 rounded font-bold bg-[#5DF8D8]/20 text-[#5DF8D8] border border-[#5DF8D8]/40 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#5DF8D8] animate-pulse" />
+            <span>متصل به سرور ابری Supabase</span>
           </span>
         </div>
 
         <p className="text-xs text-[#9E9E9C] leading-relaxed">
-          داده‌های پرسنل، رکوردهای بازی، تسک‌ها و اعلانات با الگوریتم چندلایه Safe Vault روی حافظه داخلی دستگاه شما به صورت ۱۰۰٪ امن نگهداری می‌شوند و با آپدیت‌های برنامه هیچ داده‌ای پاک نمی‌شود.
+          سامانه مستقیماً به سرور ابری Supabase متصل است. تمامی کاربران، رکوردهای بازی، تسک‌ها و اعلانات به طور بلادرنگ میان کلیه دستگاه‌ها (گوشی، تبلت و کامپیوتر) همگام‌سازی می‌شوند.
         </p>
 
         {/* Quick Metrics Grid */}
         <div className="grid grid-cols-4 gap-2 pt-1 text-center">
           <div className="p-2 bg-[#0E0E0D] border border-[#5DF8D8]/20 rounded-lg">
-            <span className="text-[10px] text-[#A3A39E] block">پرسنل فعال</span>
+            <span className="text-[10px] text-[#A3A39E] block">پرسنل ثبت‌شده</span>
             <span className="font-code-md text-sm text-[#5DF8D8] font-bold">
               {toPersianDigits(dbStats?.profilesCount || 0)}
             </span>
@@ -94,18 +113,31 @@ export const DatabaseManager: React.FC<DatabaseManagerProps> = ({ onRefresh, sho
             </span>
           </div>
           <div className="p-2 bg-[#0E0E0D] border border-[#5DF8D8]/20 rounded-lg">
-            <span className="text-[10px] text-[#A3A39E] block">وظایف جاری</span>
+            <span className="text-[10px] text-[#A3A39E] block">وظایف فعال</span>
             <span className="font-code-md text-sm text-[#F5F5F5] font-bold">
               {toPersianDigits(dbStats?.tasksCount || 0)}
             </span>
           </div>
           <div className="p-2 bg-[#0E0E0D] border border-[#5DF8D8]/20 rounded-lg">
-            <span className="text-[10px] text-[#A3A39E] block">حجم حافظه</span>
+            <span className="text-[10px] text-[#A3A39E] block">حجم ذخیره</span>
             <span className="font-code-md text-sm text-[#5DF8D8] font-bold">
               {toPersianDigits(dbStats?.storageSizeKb || 1)} KB
             </span>
           </div>
         </div>
+
+        {/* Manual Cloud Sync Button */}
+        <button
+          type="button"
+          onClick={handleManualSync}
+          disabled={isSyncing}
+          className="w-full mt-1 py-2.5 px-3 bg-[#5DF8D8]/15 hover:bg-[#5DF8D8] text-[#5DF8D8] hover:text-[#0A2821] border border-[#5DF8D8]/40 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-[0_0_12px_rgba(93,248,216,0.2)] disabled:opacity-50"
+        >
+          <span className={`material-symbols-outlined text-[18px] ${isSyncing ? 'animate-spin' : ''}`}>
+            sync
+          </span>
+          <span>{isSyncing ? 'در حال همگام‌سازی با سرور ابری...' : 'همگام‌سازی فوری با سرور ابری (Cloud Sync)'}</span>
+        </button>
       </section>
 
       {/* Backup & Restore Controls */}

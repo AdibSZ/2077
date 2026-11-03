@@ -82,9 +82,9 @@ export const Header: React.FC<HeaderProps> = ({
               SYS.2077 // فروشگاه مرکزی
             </span>
             <div className="flex items-center gap-space-xs mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#5DF8D8] shadow-[0_0_8px_#5DF8D8]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#5DF8D8] shadow-[0_0_8px_#5DF8D8] animate-pulse" />
               <span className="font-tech-micro text-tech-micro text-[#9E9E9C]">
-                پایگاه داده محلی ایمن // {liveTime}
+                متصل به سرور ابری // {liveTime}
               </span>
             </div>
           </div>

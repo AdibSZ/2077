@@ -23,8 +23,10 @@ export const GAME_CP_MULTIPLIERS: Record<GameId, number> = {
 
 export class GameScoreService {
   private gameScores: Record<string, GameScoreRecord>;
+  private onCloudSave?: (gameId: string, userId: string, score: number) => Promise<boolean>;
 
-  constructor() {
+  constructor(onCloudSave?: (gameId: string, userId: string, score: number) => Promise<boolean>) {
+    this.onCloudSave = onCloudSave;
     this.gameScores = StorageVault.getItem<Record<string, GameScoreRecord>>(STORAGE_KEYS.GAME_SCORES, {});
   }
 
@@ -87,6 +89,11 @@ export class GameScoreService {
       };
       this.saveScoresLocally();
       newCrown = true;
+
+      // Sync high score to cloud
+      if (this.onCloudSave) {
+        this.onCloudSave(gameId, userId, sessionScore).catch(() => {});
+      }
     }
 
     this.recalculateCrowns(profiles);

@@ -1,12 +1,20 @@
 import { UserProfile } from '../../types';
 import { STORAGE_KEYS, INITIAL_PROFILES, normalizePersianText } from './storageKeys';
 import { StorageVault } from './vault';
+import { generateUUID, isUUID } from './supabaseClient';
 
 export class ProfileService {
   private profiles: UserProfile[];
   private currentUser: UserProfile | null = null;
+  private onCloudSave?: (p: UserProfile) => Promise<boolean>;
+  private onCloudDelete?: (id: string) => Promise<boolean>;
 
-  constructor() {
+  constructor(
+    onCloudSave?: (p: UserProfile) => Promise<boolean>,
+    onCloudDelete?: (id: string) => Promise<boolean>
+  ) {
+    this.onCloudSave = onCloudSave;
+    this.onCloudDelete = onCloudDelete;
     this.profiles = StorageVault.getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
     this.currentUser = StorageVault.getItem<UserProfile | null>(STORAGE_KEYS.AUTH_SESSION, null);
   }
@@ -52,7 +60,6 @@ export class ProfileService {
     const cleanUsername = normalizePersianText(rawUsername);
     const cleanPassword = normalizePersianText(rawPassword);
 
-    // Refresh from storage to guarantee latest profiles are inspected
     this.profiles = this.getProfiles();
 
     const matched = this.profiles.find((p) => {
@@ -78,7 +85,7 @@ export class ProfileService {
     }
   ): Promise<UserProfile> {
     this.profiles = this.getProfiles();
-    const newId = profile.id || `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const newId = profile.id && isUUID(profile.id) ? profile.id : generateUUID();
     const fullProfile: UserProfile = {
       ...profile,
       id: newId,
@@ -91,6 +98,12 @@ export class ProfileService {
 
     this.profiles.push(fullProfile);
     this.saveProfilesLocally();
+
+    // Instant cloud persistence
+    if (this.onCloudSave) {
+      this.onCloudSave(fullProfile).catch(() => {});
+    }
+
     return fullProfile;
   }
 
@@ -119,6 +132,11 @@ export class ProfileService {
       this.setAuthSession(updated);
     }
 
+    // Instant cloud persistence
+    if (this.onCloudSave) {
+      this.onCloudSave(updated).catch(() => {});
+    }
+
     return updated;
   }
 
@@ -128,6 +146,9 @@ export class ProfileService {
     this.profiles = this.profiles.filter((p) => p.id !== id);
     if (this.profiles.length !== prevLength) {
       this.saveProfilesLocally();
+      if (this.onCloudDelete) {
+        this.onCloudDelete(id).catch(() => {});
+      }
       return true;
     }
     return false;
