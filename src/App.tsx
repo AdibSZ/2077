@@ -11,6 +11,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { GameModal } from './components/GameModal';
 import { NotificationModal } from './components/NotificationModal';
 import { ReloadPrompt } from './components/ReloadPrompt';
+import { webNotifications } from './services/webNotificationService';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => db.getCurrentUser());
@@ -80,6 +81,13 @@ export function App() {
       if (lastSeen !== noticeSig) {
         setIsNotificationModalOpen(true);
         sessionStorage.setItem('2077_last_seen_notice_sig', noticeSig);
+
+        // Also trigger OS system notification if granted!
+        if (hasUrgent) {
+          webNotifications.notifyEmergencyAlert(announcement.title, announcement.content);
+        } else if (hasPendingTasks && lastSeen) {
+          webNotifications.notifyNewTask('شما وظیفه جدید در انتظار اقدام دارید.');
+        }
       }
     }
   }, [currentUser, announcement, myPendingTasksCount]);

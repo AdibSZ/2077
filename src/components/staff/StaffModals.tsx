@@ -5,6 +5,7 @@ import { sound } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { db } from '../../services/db';
 import { formatBirthdate, toPersianDigits } from '../../utils/jalali';
+import { getPresenceConfig } from '../../utils/presenceConstants';
 
 interface StaffCallModalProps {
   person: UserProfile | null;
@@ -73,6 +74,10 @@ interface StaffDossierModalProps {
 export const StaffDossierModal: React.FC<StaffDossierModalProps> = ({ person, onClose }) => {
   if (!person) return null;
 
+  const presenceCfg = getPresenceConfig(
+    person.presenceStatus || (person.isOnline ? 'ON_DUTY' : 'OFF_LINE')
+  );
+
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-[#141413] border border-[#5DF8D8]/50 rounded-2xl p-5 shadow-2xl flex flex-col gap-4 text-right">
@@ -96,6 +101,19 @@ export const StaffDossierModal: React.FC<StaffDossierModalProps> = ({ person, on
         </div>
 
         <div className="flex flex-col gap-2 bg-[#0E0E0D] p-3 rounded-xl border border-white/10 text-xs">
+          <div className="flex justify-between border-b border-white/5 pb-1.5">
+            <span className="text-[#A3A39E]">وضعیت حضور زنده:</span>
+            <span
+              className="font-bold flex items-center gap-1"
+              style={{ color: presenceCfg.color }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: presenceCfg.color }}
+              />
+              {presenceCfg.faLabel} ({presenceCfg.enLabel})
+            </span>
+          </div>
           <div className="flex justify-between border-b border-white/5 pb-1.5">
             <span className="text-[#A3A39E]">شیفت کاری:</span>
             <span className="text-white font-medium">{person.shiftName}</span>
@@ -182,57 +200,60 @@ export const StaffTaskModal: React.FC<StaffTaskModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div>
-            <label className="text-xs text-[#A3A39E] block mb-1">عنوان وظیفه:</label>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#A3A39E]">عنوان وظیفه:</label>
             <input
+              type="text"
+              required
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
-              className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#F62477] outline-none"
-              placeholder="مثال: بررسی قفسه‌های بخش گیمینگ"
-              required
+              placeholder="مثلاً: بررسی موجودی بخش لوازم جانبی"
+              className="p-2.5 bg-[#0E0E0D] border border-white/15 rounded-xl text-xs text-white focus:border-[#F62477] outline-none"
             />
           </div>
 
-          <div>
-            <label className="text-xs text-[#A3A39E] block mb-1">توضیحات تکمیلی:</label>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#A3A39E]">توضیحات تکمیلی (اختیاری):</label>
             <textarea
-              rows={3}
+              rows={2}
               value={taskDescription}
               onChange={(e) => setTaskDescription(e.target.value)}
-              className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#F62477] outline-none leading-relaxed"
-              placeholder="دستورالعمل اجرا..."
+              placeholder="جزئیات و دستورالعمل مأموریت..."
+              className="p-2.5 bg-[#0E0E0D] border border-white/15 rounded-xl text-xs text-white focus:border-[#F62477] outline-none resize-none"
             />
           </div>
 
-          <div>
-            <label className="text-xs text-[#A3A39E] block mb-1">اولویت:</label>
-            <select
-              value={taskPriority}
-              onChange={(e) => setTaskPriority(e.target.value as any)}
-              className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#F62477] outline-none"
-            >
-              <option value="عادی">عادی</option>
-              <option value="مهم">مهم</option>
-              <option value="فوری">فوری</option>
-            </select>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#A3A39E]">سطح فوریت مأموریت:</label>
+            <div className="grid grid-cols-3 gap-1.5 text-xs">
+              {(['عادی', 'مهم', 'فوری'] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setTaskPriority(p)}
+                  className={`py-1.5 rounded-lg border font-bold transition-all ${
+                    taskPriority === p
+                      ? p === 'فوری'
+                        ? 'bg-[#F62477] text-white border-[#F62477]'
+                        : p === 'مهم'
+                        ? 'bg-[#5DF8D8] text-[#0A2821] border-[#5DF8D8]'
+                        : 'bg-white/20 text-white border-white/30'
+                      : 'bg-white/5 border-white/10 text-[#A3A39E]'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-2">
-            <button
-              type="submit"
-              className="flex-1 py-2 px-4 bg-[#F62477] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1 shadow-[0_0_12px_rgba(246,36,119,0.4)]"
-            >
-              <span className="material-symbols-outlined text-[16px]">send</span>
-              <span>ابلاغ وظیفه</span>
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="py-2 px-3 bg-[#232321] text-white rounded-lg text-xs"
-            >
-              انصراف
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full mt-2 py-2.5 bg-[#F62477] hover:bg-[#d01c62] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(246,36,119,0.3)] active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined text-[18px]">send</span>
+            <span>ابلاغ رسمی این مأموریت</span>
+          </button>
         </form>
       </div>
     </div>

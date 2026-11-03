@@ -3,6 +3,14 @@ import { isUUID, generateUUID } from './supabaseClient';
 
 export function toCloudProfile(p: UserProfile): Record<string, any> {
   const safeId = isUUID(p.id) ? p.id : generateUUID();
+  const subObj: Record<string, any> =
+    typeof p.pushSubscription === 'object' && p.pushSubscription ? { ...p.pushSubscription } : {};
+
+  if (p.presenceStatus) subObj.presenceStatus = p.presenceStatus;
+  if (p.presenceUpdatedAt) subObj.presenceUpdatedAt = p.presenceUpdatedAt;
+
+  const isOnline = p.presenceStatus ? p.presenceStatus !== 'OFF_LINE' : Boolean(p.isOnline);
+
   return {
     id: safeId,
     username: p.username,
@@ -16,14 +24,14 @@ export function toCloudProfile(p: UserProfile): Record<string, any> {
     birth_month_num: Number(p.birthMonthNum) || 1,
     birth_year: Number(p.birthYear) || 1375,
     is_admin: Boolean(p.isAdmin),
-    is_online: Boolean(p.isOnline),
+    is_online: isOnline,
     shift_name: p.shiftName || 'شیفت روز',
     phone_number: p.phoneNumber || null,
     internal_ext: p.internalExt || null,
     banked_xp: Number(p.bankedXp) || 0,
     crowns_count: Number(p.crownsCount) || 0,
     total_cp: Number(p.totalCp) || 0,
-    push_subscription: p.pushSubscription ? JSON.stringify(p.pushSubscription) : null,
+    push_subscription: Object.keys(subObj).length > 0 ? JSON.stringify(subObj) : null,
   };
 }
 
@@ -31,8 +39,18 @@ export function fromCloudProfile(row: Record<string, any>): UserProfile {
   let pushSub = undefined;
   if (row.push_subscription) {
     try {
-      pushSub = typeof row.push_subscription === 'string' ? JSON.parse(row.push_subscription) : row.push_subscription;
+      pushSub =
+        typeof row.push_subscription === 'string'
+          ? JSON.parse(row.push_subscription)
+          : row.push_subscription;
     } catch {}
+  }
+
+  let presenceStatus = row.is_online ? 'ON_DUTY' : 'OFF_LINE';
+  let presenceUpdatedAt = undefined;
+  if (pushSub && typeof pushSub === 'object') {
+    if (pushSub.presenceStatus) presenceStatus = pushSub.presenceStatus;
+    if (pushSub.presenceUpdatedAt) presenceUpdatedAt = pushSub.presenceUpdatedAt;
   }
 
   return {
@@ -50,6 +68,8 @@ export function fromCloudProfile(row: Record<string, any>): UserProfile {
     isAdmin: Boolean(row.is_admin),
     isOnline: Boolean(row.is_online),
     shiftName: row.shift_name,
+    presenceStatus: presenceStatus as any,
+    presenceUpdatedAt,
     phoneNumber: row.phone_number || undefined,
     internalExt: row.internal_ext || undefined,
     bankedXp: row.banked_xp || 0,

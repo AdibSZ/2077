@@ -4,6 +4,7 @@ import { getTodayJalali, getMonthNumber, toPersianDigits } from '../utils/jalali
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { getAssetUrl } from '../utils/assets';
+import { WebPushToggleBanner } from './notifications/WebPushToggleBanner';
 
 interface NotificationModalProps {
   isOpen: boolean;
@@ -88,6 +89,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+                {/* Web Push OS Notification Banner */}
+        <WebPushToggleBanner />
 
         {/* Scrollable Notification Cards Area */}
         <div className="flex flex-col gap-3 overflow-y-auto pr-1 max-h-[55vh]">

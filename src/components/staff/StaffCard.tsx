@@ -2,6 +2,7 @@ import React from 'react';
 import { UserProfile } from '../../types';
 import { CyberAvatar } from '../CyberAvatar';
 import { sound } from '../../utils/audio';
+import { getPresenceConfig } from '../../utils/presenceConstants';
 
 interface StaffCardProps {
   person: UserProfile;
@@ -19,6 +20,10 @@ export const StaffCard: React.FC<StaffCardProps> = ({
   onDossier,
   onAssignTask,
 }) => {
+  const presenceCfg = getPresenceConfig(
+    person.presenceStatus || (person.isOnline ? 'ON_DUTY' : 'OFF_LINE')
+  );
+
   return (
     <div className="bg-[#141413] border border-[#5DF8D8]/20 hover:border-[#5DF8D8]/50 p-3.5 rounded-2xl shadow-lg transition-all flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
@@ -50,6 +55,26 @@ export const StaffCard: React.FC<StaffCardProps> = ({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Live Presence Status Badge */}
+        <div
+          className="px-2 py-0.5 rounded-md border text-[10px] font-bold flex items-center gap-1 shrink-0 self-start mt-0.5 shadow-sm"
+          style={{
+            backgroundColor: presenceCfg.bg,
+            borderColor: presenceCfg.border,
+            color: presenceCfg.color,
+          }}
+          title={`وضعیت: ${presenceCfg.faLabel} (${presenceCfg.enLabel})`}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{
+              backgroundColor: presenceCfg.color,
+              boxShadow: `0 0 6px ${presenceCfg.color}`,
+            }}
+          />
+          <span>{presenceCfg.faLabel}</span>
         </div>
       </div>
 

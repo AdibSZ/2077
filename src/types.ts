@@ -1,4 +1,8 @@
+export type PresenceStatus = 'ON_DUTY' | 'IN_OPERATION' | 'BIO_BREAK' | 'OFF_LINE';
+
 export interface UserProfile {
+  presenceStatus?: PresenceStatus;
+  presenceUpdatedAt?: string;
   id: string;
   username: string;
   passwordHash: string;

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, ActiveTab } from '../types';
+import { UserProfile, ActiveTab, PresenceStatus } from '../types';
 import { sound } from '../utils/audio';
 import { toPersianDigits } from '../utils/jalali';
 import { getAssetUrl } from '../utils/assets';
 import { CyberAvatar } from './CyberAvatar';
 import { CheckUpdateButton } from './CheckUpdateButton';
+import { CyberPresenceSelector } from './presence/CyberPresenceSelector';
+import { CyberAvatarBuilderModal } from './avatar/CyberAvatarBuilderModal';
+import { db } from '../services/db';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -24,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   unreadNotificationCount = 0,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [liveTime, setLiveTime] = useState('');
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
@@ -52,6 +56,22 @@ export const Header: React.FC<HeaderProps> = ({
     if (!nextMuted) {
       sound.play('tap');
     }
+  };
+
+  const handlePresenceChange = async (newStatus: PresenceStatus) => {
+    await db.updateProfile(currentUser.id, {
+      presenceStatus: newStatus,
+      presenceUpdatedAt: new Date().toISOString(),
+      isOnline: newStatus !== 'OFF_LINE',
+    });
+    setNoticeMessage('وضعیت حضور سایبری شما همگام‌سازی شد.');
+    setTimeout(() => setNoticeMessage(null), 2500);
+  };
+
+  const handleSaveAvatar = async (avatarUrl: string) => {
+    await db.updateProfile(currentUser.id, { avatarUrl });
+    setNoticeMessage('آواتار سایبری با موفقیت ثبت و ذخیره شد.');
+    setTimeout(() => setNoticeMessage(null), 2500);
   };
 
   const getTabTitle = () => {
@@ -96,6 +116,12 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="text-left hidden lg:flex flex-col ml-1">
             <span className="font-title-sm text-xs text-[#F5F5F5] font-bold">{getTabTitle()}</span>
           </div>
+
+          {/* Cyber Live Presence Punch-In Selector */}
+          <CyberPresenceSelector
+            currentUser={currentUser}
+            onStatusChange={handlePresenceChange}
+          />
 
           {/* Notification Center Trigger Button */}
           <button
@@ -189,6 +215,21 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
 
+              {/* Cyber Avatar Builder Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  setShowAvatarModal(true);
+                }}
+                className="w-full py-1.5 px-3 bg-[#5DF8D8]/10 hover:bg-[#5DF8D8]/20 text-[#5DF8D8] border border-[#5DF8D8]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  face_retouching_natural
+                </span>
+                <span>طراحی آواتار سایبری (Forge)</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -204,6 +245,14 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
       </div>
+
+      {/* Cyber Avatar Builder Modal */}
+      {showAvatarModal && (
+        <CyberAvatarBuilderModal
+          onSave={handleSaveAvatar}
+          onClose={() => setShowAvatarModal(false)}
+        />
+      )}
 
       {/* Toast notification if triggered */}
       {noticeMessage && (
