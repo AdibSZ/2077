@@ -68,7 +68,7 @@ export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
   return (
     <>
       <div
-        className={`relative p-3.5 rounded-xl border backdrop-blur-md transition-all ${
+        className={`relative p-3.5 border cyber-chamfer-card-single backdrop-blur-md transition-all ${
           isUrgent
             ? 'bg-[#F62477]/15 border-[#F62477]/60 shadow-[0_0_20px_rgba(246,36,119,0.3)] animate-pulse'
             : 'bg-[#141413] border-[#5DF8D8]/30 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
@@ -116,7 +116,7 @@ export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
       {/* Admin Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#141413] border border-[#5DF8D8]/50 rounded-2xl p-5 shadow-2xl flex flex-col gap-4 text-right">
+          <div className="w-full max-w-md bg-[#141413] border border-[#5DF8D8]/50 p-5 shadow-2xl cyber-chamfer-card flex flex-col gap-4 text-right">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#5DF8D8] text-[20px]">edit</span>
@@ -169,7 +169,7 @@ export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
               <div className="flex items-center gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2 px-4 bg-[#5DF8D8] text-[#0A2821] font-bold rounded-lg text-xs flex items-center justify-center gap-1"
+                  className="flex-1 py-2 px-4 bg-[#5DF8D8] text-[#0A2821] font-bold text-xs flex items-center justify-center gap-1 cyber-chamfer-btn shadow-[0_0_12px_rgba(93,248,216,0.3)]"
                 >
                   <span className="material-symbols-outlined text-[16px]">save</span>
                   <span>انتشار اعلان</span>
@@ -177,7 +177,7 @@ export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="py-2 px-3 bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] font-bold rounded-lg text-xs"
+                  className="py-2 px-3 bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] font-bold text-xs cyber-chamfer-btn-sm"
                 >
                   پاکسازی
                 </button>

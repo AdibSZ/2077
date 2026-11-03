@@ -20,14 +20,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showFirstRunHelp, setShowFirstRunHelp] = useState(false);
-  const [livePing, setLivePing] = useState(8);
+  const [livePing, setLivePing] = useState(18);
 
   useEffect(() => {
     const t0 = performance.now();
     setTimeout(() => {
       const delta = Math.round(performance.now() - t0);
-      setLivePing(Math.max(2, Math.min(delta, 18)));
-    }, 10);
+      setLivePing(Math.max(12, Math.min(delta, 28)));
+    }, 15);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,161 +65,204 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center w-full min-h-screen px-gutter py-space-lg relative z-10 select-none">
-      <div className="w-full max-w-md flex flex-col">
-        {/* Dynamic Diagnostics */}
-        <div className="flex items-center justify-between w-full mb-space-lg text-[#5DF8D8] opacity-90">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#5DF8D8] animate-ping" />
-            <span className="font-tech-micro text-tech-micro tracking-widest uppercase">NODE // STORE-SYS-2077</span>
-          </div>
-          <div className="font-tech-micro text-tech-micro tracking-wider uppercase flex items-center gap-1.5">
-            <span>PING: {livePing}ms</span>
-            <span className="text-[#F62477]">●</span>
-            <span>ایمن // AES-256</span>
-          </div>
+    <div className="min-h-screen w-full flex flex-col justify-between items-center cyber-matrix-bg p-4 sm:p-6 select-none relative overflow-x-hidden">
+      {/* Top Diagnostics Header Bar */}
+      <div className="w-full max-w-md flex items-center justify-between text-[#5DF8D8] text-[11px] font-mono tracking-wider pt-2 pb-3">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#5DF8D8] shadow-[0_0_8px_#5DF8D8] animate-pulse" />
+          <span>NODE // STORE-SYS-2077</span>
+        </div>
+        <span className="font-bold">PING: {livePing}MS</span>
+        <div className="flex items-center gap-1.5">
+          <span>ایمن // AES-256</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#F62477] shadow-[0_0_6px_#F62477]" />
+        </div>
+      </div>
+
+      {/* Main Cyber Terminal Card */}
+      <div className="relative w-full max-w-md bg-[#0E0E0D]/95 border border-[#5DF8D8]/30 p-6 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.95)] overflow-hidden cyber-chamfer-card my-auto">
+        {/* Subtle Corner Markers */}
+        <span className="absolute top-2.5 right-4 font-mono text-xs text-[#5DF8D8] font-bold select-none">
+          01¬
+        </span>
+        <span className="absolute bottom-2.5 left-4 font-mono text-xs text-[#5DF8D8] font-bold select-none">
+          02¬
+        </span>
+
+        {/* Faint Background Watermark Logo */}
+        <div className="absolute -bottom-8 -left-8 w-44 h-44 opacity-[0.05] pointer-events-none select-none">
+          <img
+            src={getAssetUrl('/brand/logo-white.png')}
+            alt=""
+            className="w-full h-full object-contain"
+          />
         </div>
 
-        {/* Central Terminal Box */}
-        <div className="relative w-full bg-[#141413]/95 border border-[#5DF8D8]/20 backdrop-blur-md p-space-lg shadow-2xl overflow-hidden [clip-path:polygon(18px_0,100%_0,100%_calc(100%-18px),calc(100%-18px)_100%,0_100%,0_18px)]">
-          <div className="absolute -bottom-10 -left-10 w-48 h-48 opacity-[0.06] pointer-events-none select-none">
-            <img src={getAssetUrl('/brand/logo-white.png')} alt="" className="w-full h-full object-contain" />
+        {/* Emblem & Branding Header */}
+        <div className="flex flex-col items-center justify-center text-center mb-4">
+          <div className="relative w-20 h-20 flex items-center justify-center mb-2">
+            <div className="absolute inset-0 bg-[#F62477]/25 rounded-full blur-2xl animate-pulse" />
+            <img
+              alt="2077 Emblem"
+              className="relative w-16 h-auto object-contain drop-shadow-[0_0_20px_rgba(246,36,119,0.85)]"
+              src={EMBLEM_URL}
+            />
           </div>
 
-          {/* Emblem & Title */}
-          <div className="flex flex-col items-center justify-center pt-space-xs pb-space-md text-center">
-            <div className="relative w-24 h-24 flex items-center justify-center mb-2">
-              <div className="absolute inset-0 bg-[#F62477]/15 rounded-xl blur-xl animate-pulse" />
-              <img
-                alt="2077 Family Logo"
-                className="relative w-18 h-auto object-contain drop-shadow-[0_0_16px_rgba(246,36,119,0.7)]"
-                src={EMBLEM_URL}
-              />
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#282826] rounded text-[11px] text-[#F5F5F5] mb-1">
-              <span className="material-symbols-outlined text-[#5DF8D8] text-[15px]">verified_user</span>
-              <span>سامانه هوشمند پرسنل ۲۰۷۷</span>
-            </div>
-
-            <h1 className="font-display-sm text-2xl text-[#F5F5F5] font-extrabold tracking-tight mt-1">2077 Family</h1>
-            <p className="font-body-sm text-xs text-[#9E9E9C] mt-1">
-              جهت ورود، نام کاربری و رمز عبور اختصاصی خود را وارد کنید
-            </p>
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-[#181816] border border-[#5DF8D8]/30 rounded-full text-[11px] text-[#EAEAEA] mb-2 shadow-sm">
+            <span className="material-symbols-outlined text-[#5DF8D8] text-[15px]">verified_user</span>
+            <span>پایانه امن پرسنلی فروشگاه ۲۰۷۷</span>
           </div>
 
-          {errorMsg && (
-            <div className="mb-3 p-2.5 bg-[#F62477]/15 border border-[#F62477]/40 rounded text-[#F62477] text-xs text-center font-medium shadow-[0_0_10px_rgba(246,36,119,0.2)]">
-              {errorMsg}
-            </div>
-          )}
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-wide">
+            سامانه جامع پرسنل ۲۰۷۷
+          </h1>
+          <span className="font-mono text-[10px] sm:text-[11px] text-[#5DF8D8] tracking-widest uppercase font-bold mt-1">
+            SYS.2077 // SECURE ACCESS TERMINAL
+          </span>
+          <p className="text-xs text-[#9E9E9C] mt-2">
+            جهت ورود، نام کاربری و رمز عبور اختصاصی خود را وارد کنید
+          </p>
+        </div>
 
-          {/* Form */}
-          <form className="flex flex-col gap-space-md mt-space-sm" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-1.5 text-right">
-              <label className="text-body-sm text-[#F5F5F5] flex items-center gap-1 font-semibold text-xs">
+        {errorMsg && (
+          <div className="mb-3.5 p-2.5 bg-[#F62477]/20 border border-[#F62477] text-white text-xs text-center font-bold rounded-lg shadow-[0_0_15px_rgba(246,36,119,0.3)]">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Credentials Form */}
+        <form className="flex flex-col gap-3 text-right" onSubmit={handleSubmit}>
+          {/* USER_ID Field */}
+          <div>
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="font-mono text-[11px] text-[#5DF8D8]">USER_ID //</span>
+              <span className="font-bold text-white flex items-center gap-1">
+                <span>نام کاربری / شماره داخلی / همراه</span>
                 <span className="material-symbols-outlined text-[#5DF8D8] text-[16px]">badge</span>
-                نام کاربری / شماره داخلی / همراه
-              </label>
-              <div className="relative flex items-center bg-[#0D0D0C] rounded-lg border border-white/10 shadow-inner">
-                <span className="material-symbols-outlined text-[#6B6B67] pr-3 pl-1 text-[18px]">fingerprint</span>
-                <input
-                  autoComplete="username"
-                  className="w-full bg-transparent py-2.5 pl-3 text-[#5DF8D8] font-mono text-xs placeholder:text-[#555551] focus:outline-none"
-                  dir="ltr"
-                  placeholder="admin یا نام کاربری یا داخلی"
-                  required
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
+              </span>
             </div>
+            <div className="relative flex items-center bg-[#070706] rounded-xl border border-white/15 focus-within:border-[#5DF8D8] focus-within:shadow-[0_0_10px_rgba(93,248,216,0.25)] transition-all overflow-hidden">
+              <input
+                autoComplete="username"
+                className="w-full bg-transparent py-3 px-3 text-white font-mono text-xs placeholder:text-[#555551] focus:outline-none"
+                dir="ltr"
+                placeholder="نام کاربری، شماره داخلی (مثال: 101) یا همراه"
+                required
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <span className="material-symbols-outlined text-[#70706B] pr-3 text-[20px] shrink-0">
+                fingerprint
+              </span>
+            </div>
+          </div>
 
-            <div className="flex flex-col gap-1.5 text-right">
-              <label className="text-body-sm text-[#F5F5F5] flex items-center gap-1 font-semibold text-xs">
+          {/* ACCESS_KEY Field */}
+          <div>
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="font-mono text-[11px] text-[#5DF8D8]">ACCESS_KEY //</span>
+              <span className="font-bold text-white flex items-center gap-1">
+                <span>رمز عبور شبکه</span>
                 <span className="material-symbols-outlined text-[#5DF8D8] text-[16px]">lock</span>
-                رمز عبور ورود
-              </label>
-              <div className="relative flex items-center bg-[#0D0D0C] rounded-lg border border-white/10 shadow-inner">
-                <span className="material-symbols-outlined text-[#6B6B67] pr-3 pl-1 text-[18px]">vpn_key</span>
-                <input
-                  autoComplete="current-password"
-                  className="w-full bg-transparent py-2.5 pl-3 text-[#5DF8D8] font-mono text-xs placeholder:text-[#3A3A38] focus:outline-none tracking-wider"
-                  dir="ltr"
-                  placeholder="••••••••"
-                  required
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  aria-label="تغییر نمایش رمز"
-                  className="px-3 text-[#6B6B67] hover:text-[#5DF8D8]"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
-                </button>
-              </div>
+              </span>
             </div>
-
-            <div
-              className="flex items-center justify-between pt-1 cursor-pointer"
-              onClick={() => setPersistentSession(!persistentSession)}
-            >
-              <div className="flex items-center gap-2">
-                <div className={`w-4 h-4 flex items-center justify-center border rounded ${persistentSession ? 'bg-[#F62477] border-[#F62477]' : 'bg-[#0D0D0C] border-[#3A3A38]'}`}>
-                  {persistentSession && <span className="material-symbols-outlined text-white text-[13px] font-bold">check</span>}
-                </div>
-                <span className="text-xs text-[#9E9E9C]">حفظ اتصال دائمی</span>
-              </div>
-              <span className="font-tech-micro text-[10px] text-[#6B6B67]">SESSION_PERSIST</span>
-            </div>
-
-            <button
-              className="w-full mt-2 py-3 px-4 bg-[#F62477] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(246,36,119,0.4)] active:bg-[#5DF8D8] active:text-[#0A2821] disabled:opacity-50 transition-all active:scale-[0.98]"
-              disabled={isLoading}
-              type="submit"
-            >
-              <span className="material-symbols-outlined text-[18px]">login</span>
-              <span>{isLoading ? 'در حال تایید...' : 'ورود به سامانه // LOGIN'}</span>
-            </button>
-
-            <div className="flex flex-col items-center pt-1 text-center">
+            <div className="relative flex items-center bg-[#070706] rounded-xl border border-white/15 focus-within:border-[#5DF8D8] focus-within:shadow-[0_0_10px_rgba(93,248,216,0.25)] transition-all overflow-hidden">
               <button
                 type="button"
-                onClick={() => setShowFirstRunHelp(!showFirstRunHelp)}
-                className="text-[11px] text-[#A3A39E] hover:text-[#5DF8D8] transition-colors flex items-center gap-1"
+                aria-label="تغییر نمایش رمز"
+                className="pl-3 pr-1 text-[#70706B] hover:text-[#5DF8D8] transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                <span className="material-symbols-outlined text-[14px]">help_outline</span>
-                <span>راهنمای حساب اولیه مدیر سیستم</span>
+                <span className="material-symbols-outlined text-[18px]">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
               </button>
-
-              {showFirstRunHelp && (
-                <div className="mt-2 p-2.5 bg-[#1C1C1B] border border-[#5DF8D8]/30 rounded text-right text-xs text-[#F5F5F5] w-full flex flex-col gap-1 shadow-lg">
-                  <div className="text-[#5DF8D8] font-bold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
-                    حساب اولیه مدیریت:
-                  </div>
-                  <div>یوزرنیم پیش‌فرض: <code className="text-[#F62477] font-bold">admin</code></div>
-                  <div>رمز اولیه: <code className="text-[#F62477] font-bold">cyber2077</code></div>
-                </div>
-              )}
+              <input
+                autoComplete="current-password"
+                className="w-full bg-transparent py-3 px-2 text-white font-mono text-xs placeholder:text-[#40403C] focus:outline-none tracking-widest"
+                dir="ltr"
+                placeholder="••••••••••"
+                required
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <span className="material-symbols-outlined text-[#70706B] pr-3 text-[20px] shrink-0">
+                key
+              </span>
             </div>
-          </form>
-        </div>
-
-        {/* Diagnostics Footer */}
-        <div className="mt-space-lg w-full flex flex-col items-center justify-center gap-1.5 opacity-80 text-[10px] text-[#5DF8D8]">
-          <div className="flex items-center gap-3">
-            <span>STATUS: <strong>ACTIVE</strong></span>
-            <span>|</span>
-            <span>CORE: <strong>2077 FAMILY</strong></span>
-            <span>|</span>
-            <span>BUILD: <strong className="text-[#F62477]">v2.5.0</strong></span>
           </div>
-        </div>
+
+          {/* Persistent Session Checkbox */}
+          <div
+            className="flex items-center justify-between pt-2 pb-1 cursor-pointer select-none"
+            onClick={() => setPersistentSession(!persistentSession)}
+          >
+            <span className="font-mono text-[11px] text-[#6B6B67]">SESSION_PERSIST</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#9E9E9C]">حفظ اتصال دائمی در این دستگاه</span>
+              <div
+                className={`w-4 h-4 rounded flex items-center justify-center transition-all ${
+                  persistentSession
+                    ? 'bg-[#F62477] border border-[#F62477] shadow-[0_0_8px_#F62477]'
+                    : 'bg-[#070706] border border-white/20'
+                }`}
+              >
+                {persistentSession && (
+                  <span className="material-symbols-outlined text-white text-[13px] font-bold">
+                    check
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Cyber Chamfered Login Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full mt-2 py-3.5 px-6 bg-[#F62477] hover:bg-[#ff1a6c] active:bg-[#d0135b] text-white font-black text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(246,36,119,0.55)] transition-all active:scale-[0.98] disabled:opacity-50 cyber-chamfer-btn select-none tracking-wide"
+          >
+            <span className="material-symbols-outlined text-[20px]">contactless</span>
+            <span>{isLoading ? 'در حال تایید اعتبار...' : 'ورود به پایگاه داده // LOGIN'}</span>
+          </button>
+
+          {/* Admin Help Link */}
+          <div className="flex flex-col items-center pt-1 text-center">
+            <button
+              type="button"
+              onClick={() => setShowFirstRunHelp(!showFirstRunHelp)}
+              className="text-[11px] text-[#A3A39E] hover:text-[#5DF8D8] transition-colors flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[14px]">help_outline</span>
+              <span>راهنمای راه‌اندازی و حساب پیش‌فرض ادمین</span>
+            </button>
+
+            {showFirstRunHelp && (
+              <div className="mt-2.5 p-3 bg-[#161614] border border-[#5DF8D8]/30 rounded-xl text-right text-xs text-[#F5F5F5] w-full flex flex-col gap-1 shadow-lg">
+                <div className="text-[#5DF8D8] font-bold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px]">admin_panel_settings</span>
+                  حساب کاربری اولیه مدیریت سیستم:
+                </div>
+                <div>
+                  نام‌کاربری: <code className="text-[#F62477] font-bold font-mono">admin</code>
+                </div>
+                <div>
+                  رمز عبور: <code className="text-[#F62477] font-bold font-mono">cyber2077</code>
+                </div>
+              </div>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Diagnostics Footer Bar */}
+      <div className="w-full max-w-md flex items-center justify-between text-[#5DF8D8] text-[10px] font-mono tracking-wider pb-2 pt-3 opacity-80">
+        <span>BUILD: v2.8.0</span>
+        <span>HOST: 2077-STORE-SYS</span>
+        <span className="text-[#5DF8D8] font-bold">STATUS: ONLINE</span>
       </div>
     </div>
   );

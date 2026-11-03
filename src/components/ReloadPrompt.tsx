@@ -83,7 +83,7 @@ export const ReloadPrompt: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in select-none">
-      <div className="relative w-full max-w-md bg-[#141413] border-2 border-[#F62477] shadow-[0_0_50px_rgba(246,36,119,0.45)] rounded-2xl p-5 overflow-hidden">
+      <div className="relative w-full max-w-md bg-[#141413] border-2 border-[#F62477] shadow-[0_0_50px_rgba(246,36,119,0.45)] p-5 overflow-hidden cyber-chamfer-card">
         {/* Cyberpunk Top Neon Glow Line */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#5DF8D8] via-[#F62477] to-[#E5A93C]" />
 
@@ -135,7 +135,7 @@ export const ReloadPrompt: React.FC = () => {
           <button
             type="button"
             onClick={handleUpdate}
-            className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#F62477] to-[#E5A93C] text-[#141413] font-black text-xs hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(246,36,119,0.5)] flex items-center justify-center gap-2"
+            className="flex-1 py-3 px-4 bg-gradient-to-r from-[#F62477] to-[#E5A93C] text-[#141413] cyber-chamfer-btn font-black text-xs hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(246,36,119,0.5)] flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px]">bolt</span>
             <span>بروزرسانی و بارگذاری مجدد</span>
@@ -144,7 +144,7 @@ export const ReloadPrompt: React.FC = () => {
           <button
             type="button"
             onClick={handleDismiss}
-            className="py-3 px-4 rounded-xl border border-[#9E9E9C]/30 text-[#9E9E9C] text-xs hover:text-white hover:bg-white/5 active:scale-95 transition-all"
+            className="py-3 px-4 border cyber-chamfer-btn-sm border-[#9E9E9C]/30 text-[#9E9E9C] text-xs hover:text-white hover:bg-white/5 active:scale-95 transition-all"
           >
             بعداً
           </button>

@@ -42,7 +42,7 @@ export const CyberPresenceSelector: React.FC<CyberPresenceSelectorProps> = ({
           sound.play('tap');
           setIsOpen(!isOpen);
         }}
-        className="h-8 px-2.5 rounded-lg border flex items-center gap-1.5 transition-all text-xs font-semibold shadow-sm active:scale-95 select-none"
+        className="h-8 px-2.5 border cyber-chamfer-btn-sm flex items-center gap-1.5 transition-all text-xs font-semibold shadow-sm active:scale-95 select-none"
         style={{
           backgroundColor: activeCfg.bg,
           borderColor: activeCfg.border,

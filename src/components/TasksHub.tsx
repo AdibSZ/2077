@@ -111,7 +111,7 @@ export const TasksHub: React.FC<TasksHubProps> = ({
               sound.play('tap');
               setIsCreateModalOpen(true);
             }}
-            className="py-2 px-3 bg-[#5DF8D8] text-[#0A2821] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(93,248,216,0.3)] hover:brightness-110 active:scale-95 transition-all"
+            className="py-2.5 px-4 bg-[#5DF8D8] text-[#0A2821] font-black text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(93,248,216,0.35)] hover:brightness-110 active:scale-95 transition-all cyber-chamfer-btn"
           >
             <span className="material-symbols-outlined text-[16px]">add</span>
             <span>تعریف وظیفه جدید</span>

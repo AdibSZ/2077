@@ -65,7 +65,7 @@
 
 @layer base {
   html, body {
-    background-color: #1D1D1B;
+    background-color: #0A0A09;
     color: #F5F5F5;
     font-family: 'Peyda', system-ui, -apple-system, sans-serif;
   }
@@ -76,8 +76,30 @@
 }
 
 /* =========================================================================
-   SYS.2077 // CYBERPUNK 2077 PHOTO & HOLOGRAM UTILITY CLASSES
+   SYS.2077 // CYBERPUNK 2077 CHAMFER & STYLING CLASSES
    ========================================================================= */
+
+.cyber-matrix-bg {
+  background-color: #090908;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.cyber-chamfer-btn {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+
+.cyber-chamfer-btn-sm {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+
+.cyber-chamfer-card {
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+
+.cyber-chamfer-card-single {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
 
 .cyber-photo {
   filter: contrast(1.18) saturate(1.24) brightness(0.96);
@@ -104,4 +126,3 @@
   mix-blend-mode: color-dodge;
   pointer-events: none;
 }
-

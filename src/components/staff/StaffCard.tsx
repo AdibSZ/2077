@@ -25,7 +25,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
   );
 
   return (
-    <div className="bg-[#141413] border border-[#5DF8D8]/20 hover:border-[#5DF8D8]/50 p-3.5 rounded-2xl shadow-lg transition-all flex flex-col gap-3">
+    <div className="bg-[#121211] border border-[#5DF8D8]/20 hover:border-[#5DF8D8]/50 p-3.5 shadow-lg transition-all flex flex-col gap-3 cyber-chamfer-card-single select-none">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <CyberAvatar
@@ -39,7 +39,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
             <div className="flex items-center gap-1.5 mb-0.5">
               <span className="text-sm font-bold text-white truncate">{person.fullName}</span>
               {person.isAdmin && (
-                <span className="text-[9px] bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] px-1.5 py-0.2 rounded font-bold">
+                <span className="text-[9px] bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] px-1.5 py-0.2 rounded font-bold font-mono">
                   ADMIN
                 </span>
               )}
@@ -59,7 +59,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
 
         {/* Live Presence Status Badge */}
         <div
-          className="px-2 py-0.5 rounded-md border text-[10px] font-bold flex items-center gap-1 shrink-0 self-start mt-0.5 shadow-sm"
+          className="px-2 py-0.5 rounded-md border text-[10px] font-bold flex items-center gap-1 shrink-0 self-start mt-0.5 shadow-sm font-mono"
           style={{
             backgroundColor: presenceCfg.bg,
             borderColor: presenceCfg.border,
@@ -78,7 +78,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Cyber Action Buttons */}
       <div className="flex items-center gap-2 pt-2 border-t border-white/5">
         <button
           type="button"
@@ -86,7 +86,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
             sound.play('tap');
             onCall(person);
           }}
-          className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-[#5DF8D8]/15 text-[#5DF8D8] border border-[#5DF8D8]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+          className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-[#5DF8D8]/15 text-[#5DF8D8] border border-[#5DF8D8]/30 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95 cyber-chamfer-btn-sm"
         >
           <span className="material-symbols-outlined text-[15px]">call</span>
           <span>تماس / داخلی</span>
@@ -98,7 +98,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
             sound.play('tap');
             onDossier(person);
           }}
-          className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+          className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-white/10 text-white border border-white/15 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95 cyber-chamfer-btn-sm"
         >
           <span className="material-symbols-outlined text-[15px]">badge</span>
           <span>مشخصات</span>
@@ -111,7 +111,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({
               sound.play('tap');
               onAssignTask(person);
             }}
-            className="py-1.5 px-2.5 bg-[#F62477]/15 hover:bg-[#F62477]/25 text-[#F62477] border border-[#F62477]/30 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors"
+            className="py-1.5 px-2.5 bg-[#F62477]/15 hover:bg-[#F62477] text-[#F62477] hover:text-white border border-[#F62477]/30 text-xs font-bold flex items-center justify-center gap-1 transition-all active:scale-95 shadow-[0_0_8px_rgba(246,36,119,0.25)] cyber-chamfer-btn-sm"
             title="تعریف تسک برای این شخص"
           >
             <span className="material-symbols-outlined text-[15px]">add_task</span>

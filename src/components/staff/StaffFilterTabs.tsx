@@ -44,7 +44,7 @@ export const StaffFilterTabs: React.FC<StaffFilterTabsProps> = ({
               sound.play('tap');
               onSelectFilter(tab.id);
             }}
-            className={`py-1.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`py-1.5 px-3 text-xs font-semibold whitespace-nowrap transition-all cyber-chamfer-btn-sm ${
               currentFilter === tab.id
                 ? 'bg-[#5DF8D8] text-[#0A2821] font-bold shadow-[0_0_10px_rgba(93,248,216,0.3)]'
                 : 'bg-[#141413] text-[#A3A39E] hover:text-white border border-white/5'

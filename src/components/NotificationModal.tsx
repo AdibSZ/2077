@@ -241,7 +241,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           </span>
           <button
             onClick={handleClose}
-            className="py-2.5 px-6 bg-[#5DF8D8] text-[#0A2821] font-bold rounded-lg text-xs hover:bg-[#46deb9] active:scale-95 transition-all shadow-[0_0_15px_rgba(93,248,216,0.3)] shrink-0"
+            className="py-2.5 px-6 bg-[#5DF8D8] text-[#0A2821] font-bold text-xs hover:bg-[#46deb9] active:scale-95 transition-all shadow-[0_0_15px_rgba(93,248,216,0.3)] shrink-0 cyber-chamfer-btn"
           >
             متوجه شدم // بستن
           </button>

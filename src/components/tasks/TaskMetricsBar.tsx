@@ -37,19 +37,21 @@ export const TaskMetricsBar: React.FC<TaskMetricsBarProps> = ({
             sound.play('tap');
             onSelectFilter(tab.id);
           }}
-          className={`py-2 px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`py-2 px-3 text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cyber-chamfer-btn-sm ${
             filterType === tab.id
-              ? 'bg-[#5DF8D8] text-[#0A2821] font-bold shadow-[0_0_12px_rgba(93,248,216,0.3)]'
+              ? tab.urgent
+                ? 'bg-[#F62477] text-white font-bold shadow-[0_0_12px_rgba(246,36,119,0.4)]'
+                : 'bg-[#5DF8D8] text-[#0A2821] font-bold shadow-[0_0_12px_rgba(93,248,216,0.3)]'
               : 'bg-[#141413] text-[#A3A39E] hover:text-white border border-white/5'
           }`}
         >
           <span>{tab.label}</span>
           <span
-            className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            className={`px-1.5 py-0.2 rounded text-[10px] font-bold font-mono ${
               filterType === tab.id
-                ? 'bg-[#0A2821]/20 text-[#0A2821]'
+                ? 'bg-black/20 text-current'
                 : tab.urgent && tab.count > 0
-                ? 'bg-[#F62477] text-white'
+                ? 'bg-[#F62477] text-white shadow-[0_0_6px_#F62477]'
                 : 'bg-white/10 text-white'
             }`}
           >
