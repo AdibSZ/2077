@@ -5,6 +5,7 @@ import { toPersianDigits } from '../utils/jalali';
 import { db } from '../services/db';
 import { getAssetUrl } from '../utils/assets';
 import { CyberAvatar } from './CyberAvatar';
+import { CheckUpdateButton } from './CheckUpdateButton';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -197,6 +198,9 @@ export const Header: React.FC<HeaderProps> = ({
               {isMuted ? 'volume_off' : 'volume_up'}
             </span>
           </button>
+
+          {/* Manual Update Check Button */}
+          <CheckUpdateButton onStatusMessage={(msg) => { setSyncNotice(msg); setTimeout(() => setSyncNotice(null), 3500); }} />
 
           {/* User Avatar & Status Pip */}
           <CyberAvatar

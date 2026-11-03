@@ -1,7 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { DatabaseStats, SyncQueueItem, NetworkSyncState } from '../../types';
-import { STORAGE_KEYS } from './storageKeys';
+import { STORAGE_KEYS, DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY } from './storageKeys';
 import { StorageVault } from './vault';
+import {
+  toCloudProfile,
+  fromCloudProfile,
+  toCloudTask,
+  fromCloudTask,
+  toCloudAnnouncement,
+  fromCloudAnnouncement,
+} from './cloudMappers';
 
 export class CloudSyncService {
   private supabase: SupabaseClient | null = null;
@@ -11,13 +19,22 @@ export class CloudSyncService {
   private isSyncing = false;
   private lastSyncTime: string | null = null;
   private syncListeners: ((state: NetworkSyncState) => void)[] = [];
+  private onDataSynced?: () => void;
 
-  constructor() {
+  constructor(onDataSynced?: () => void) {
+    this.onDataSynced = onDataSynced;
     this.initSupabaseClient();
     this.syncQueue = StorageVault.getItem<SyncQueueItem[]>(STORAGE_KEYS.SYNC_QUEUE, []);
     try {
       this.lastSyncTime = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
     } catch {}
+
+    if (this.supabase) {
+      setTimeout(() => this.pullFromCloud(), 300);
+      setInterval(() => {
+        if (!this.isSyncing) this.pullFromCloud().catch(() => {});
+      }, 15000);
+    }
   }
 
   initSupabaseClient() {
@@ -27,8 +44,8 @@ export class CloudSyncService {
       if (saved) customConfig = JSON.parse(saved);
     } catch {}
 
-    const url = customConfig?.url || (import.meta.env.VITE_SUPABASE_URL as string) || '';
-    const key = customConfig?.key || (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+    const url = customConfig?.url || (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL;
+    const key = customConfig?.key || (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || DEFAULT_SUPABASE_KEY;
 
     this.supabaseUrl = url;
     this.supabaseKey = key;
@@ -36,12 +53,11 @@ export class CloudSyncService {
     if (url && key) {
       try {
         this.supabase = createClient(url, key);
+        this.setupRealtimeSubscription();
       } catch (e) {
         console.warn('Supabase initialization warning:', e);
         this.supabase = null;
       }
-    } else {
-      this.supabase = null;
     }
   }
 
@@ -84,6 +100,7 @@ export class CloudSyncService {
     this.syncQueue.push(queueItem);
     StorageVault.setItem(STORAGE_KEYS.SYNC_QUEUE, this.syncQueue);
     this.notifySyncListeners();
+    this.flushSyncQueue().catch(() => {});
   }
 
   async flushSyncQueue(): Promise<{ syncedCount: number; remainingCount: number }> {
@@ -94,25 +111,19 @@ export class CloudSyncService {
 
     this.isSyncing = true;
     this.notifySyncListeners();
-
     let syncedCount = 0;
     const remaining: SyncQueueItem[] = [];
 
     for (const item of this.syncQueue) {
       try {
         if (item.type === 'profile_update') {
-          const { id, updates } = item.payload;
-          const { error } = await this.supabase.from('profiles').update(updates).eq('id', id);
+          const { error } = await this.supabase.from('profiles').upsert(toCloudProfile(item.payload));
           if (error) throw error;
-        } else if (item.type === 'task_add') {
-          const { error } = await this.supabase.from('tasks').insert(item.payload);
-          if (error) throw error;
-        } else if (item.type === 'task_toggle') {
-          const { id, isCompleted } = item.payload;
-          const { error } = await this.supabase.from('tasks').update({ is_completed: isCompleted }).eq('id', id);
+        } else if (item.type === 'task_add' || item.type === 'task_toggle') {
+          const { error } = await this.supabase.from('tasks').upsert(toCloudTask(item.payload));
           if (error) throw error;
         } else if (item.type === 'announcement') {
-          const { error } = await this.supabase.from('announcements').insert(item.payload);
+          const { error } = await this.supabase.from('announcements').upsert(toCloudAnnouncement(item.payload));
           if (error) throw error;
         }
         syncedCount++;
@@ -134,6 +145,53 @@ export class CloudSyncService {
     return { syncedCount, remainingCount: this.syncQueue.length };
   }
 
+  async pullFromCloud(): Promise<boolean> {
+    if (!this.supabase || typeof navigator !== 'undefined' && !navigator.onLine) return false;
+
+    try {
+      const { data: cloudProfiles } = await this.supabase.from('profiles').select('*').order('total_cp', { ascending: false });
+      if (cloudProfiles && cloudProfiles.length > 0) {
+        StorageVault.setItem(STORAGE_KEYS.PROFILES, cloudProfiles.map(fromCloudProfile));
+      }
+
+      const { data: cloudTasks } = await this.supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      if (cloudTasks) {
+        StorageVault.setItem(STORAGE_KEYS.TASKS, cloudTasks.map(fromCloudTask));
+      }
+
+      const { data: cloudAnn } = await this.supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(1);
+      if (cloudAnn && cloudAnn.length > 0) {
+        StorageVault.setItem(STORAGE_KEYS.ANNOUNCEMENTS, fromCloudAnnouncement(cloudAnn[0]));
+      }
+
+      this.lastSyncTime = new Date().toLocaleTimeString('fa-IR');
+      try {
+        localStorage.setItem(STORAGE_KEYS.LAST_SYNC, this.lastSyncTime);
+      } catch {}
+
+      if (this.onDataSynced) this.onDataSynced();
+      this.notifySyncListeners();
+      return true;
+    } catch (e) {
+      console.warn('Pull from Supabase failed, using local vault:', e);
+      return false;
+    }
+  }
+
+  private setupRealtimeSubscription() {
+    if (!this.supabase) return;
+    try {
+      this.supabase
+        .channel('schema-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => this.pullFromCloud().catch(() => {}))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => this.pullFromCloud().catch(() => {}))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => this.pullFromCloud().catch(() => {}))
+        .subscribe();
+    } catch (err) {
+      console.warn('Realtime subscription warning:', err);
+    }
+  }
+
   getSupabaseConfig(): { url: string; anonKey: string; isCustom: boolean } {
     return {
       url: this.supabaseUrl,
@@ -143,19 +201,8 @@ export class CloudSyncService {
   }
 
   async configureSupabase(url: string, anonKey: string): Promise<{ success: boolean; message: string }> {
-    const cleanUrl = url.trim();
-    const cleanKey = anonKey.trim();
-
-    if (!cleanUrl && !cleanKey) {
-      localStorage.removeItem(STORAGE_KEYS.SUPABASE_CONFIG);
-      this.initSupabaseClient();
-      this.notifySyncListeners();
-      return { success: true, message: 'تنظیمات پایگاه داده به حالت محلی (Local Safe Vault) بازگردانده شد.' };
-    }
-
-    if (!cleanUrl.startsWith('https://')) {
-      return { success: false, message: 'آدرس سرور Supabase باید با https:// شروع شود.' };
-    }
+    const cleanUrl = url.trim() || DEFAULT_SUPABASE_URL;
+    const cleanKey = anonKey.trim() || DEFAULT_SUPABASE_KEY;
 
     try {
       const client = createClient(cleanUrl, cleanKey);
@@ -165,6 +212,8 @@ export class CloudSyncService {
       this.supabaseUrl = cleanUrl;
       this.supabaseKey = cleanKey;
       this.supabase = client;
+      this.setupRealtimeSubscription();
+      this.pullFromCloud().catch(() => {});
       this.notifySyncListeners();
 
       return { success: true, message: 'ارتباط ابری با سرور Supabase با موفقیت برقرار شد!' };

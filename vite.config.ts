@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png', 'brand/*.png', 'fonts/**/*.woff2'],
       manifest: {
         name: '2077 Family',

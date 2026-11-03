@@ -43,7 +43,13 @@ class DatabaseService {
   }
 
   async login(username: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
-    const user = this.profilesService.verifyLogin(username, pass);
+    let user = this.profilesService.verifyLogin(username, pass);
+    if (!user) {
+      try {
+        await this.cloudSyncService.pullFromCloud();
+        user = this.profilesService.verifyLogin(username, pass);
+      } catch {}
+    }
     if (!user) {
       return { user: null, error: 'نام کاربری یا رمز عبور اشتباه است.' };
     }

@@ -13,6 +13,9 @@ export const STORAGE_KEYS = {
   SAFE_BACKUP: '2077_safe_vault_backup',
 };
 
+export const DEFAULT_SUPABASE_URL = 'https://amagwazaghpklidmmiba.supabase.co';
+export const DEFAULT_SUPABASE_KEY = 'sb_publishable_GTg587mUBT7SH6PQ7naFVg_g2RStdGL';
+
 /**
  * Universal Digits Normalizer: Maps Persian and Arabic digits to standard ASCII digits.
  */

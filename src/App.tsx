@@ -38,6 +38,10 @@ export function App() {
 
   useEffect(() => {
     loadData();
+    const unsub = db.subscribeSyncState(() => {
+      loadData();
+    });
+    return () => unsub();
   }, []);
 
   const handleLoginSuccess = (user: UserProfile) => {
