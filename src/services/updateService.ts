@@ -3,8 +3,8 @@
  * Checks version.json and Service Worker state to trigger cyberpunk update popups.
  */
 
-export const CURRENT_APP_VERSION = '2.8.8';
-export const CURRENT_BUILD_TIME = 1793755000000;
+export const CURRENT_APP_VERSION = '2.8.9';
+export const CURRENT_BUILD_TIME = 1793800000000;
 
 export interface RemoteVersionInfo {
   version: string;

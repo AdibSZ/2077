@@ -6,6 +6,7 @@ import { StaffMetricsBar } from './staff/StaffMetricsBar';
 import { StaffFilterTabs } from './staff/StaffFilterTabs';
 import { StaffCard } from './staff/StaffCard';
 import { StaffCallModal, StaffDossierModal, StaffTaskModal } from './staff/StaffModals';
+import { getStaffLevelAndBirthdayInfo, toPersianDigits } from '../utils/jalali';
 
 interface StaffOpsHubProps {
   currentUser: UserProfile;
@@ -45,6 +46,15 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
   const pendingTasksCount = tasks.filter((t) => !t.isCompleted).length;
   const onlineCount = profiles.filter((p) => p.isOnline).length;
 
+  // Birthday events for other staff only (never notify currentUser of their own birthday)
+  const otherStaffBirthdays = profiles
+    .filter((p) => p.id !== currentUser.id)
+    .map((p) => ({
+      person: p,
+      info: getStaffLevelAndBirthdayInfo(p.birthYear, p.birthMonthNum || p.birthMonth, p.birthDay),
+    }))
+    .filter((b) => b.info.isToday || b.info.isUpcoming3Days);
+
   const filteredProfiles = profiles.filter((p) => {
     // Filter tabs
     if (filter === 'online' && !p.isOnline) return false;
@@ -80,6 +90,29 @@ export const StaffOpsHub: React.FC<StaffOpsHubProps> = ({
         onRefresh={onRefresh}
         showToast={showToast}
       />
+
+      {/* Cyberpunk Birthday Alert Banner (For other staff only) */}
+      {otherStaffBirthdays.length > 0 && (
+        <div className="p-3 bg-gradient-to-r from-[#5DF8D8]/10 via-[#141413] to-[#F62477]/10 border border-[#5DF8D8]/40 rounded-xl flex items-center justify-between gap-3 shadow-[0_0_15px_rgba(93,248,216,0.15)] animate-pulse">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-xl shrink-0">🎂</span>
+            <div className="flex flex-col text-right truncate">
+              <span className="text-xs font-bold text-[#5DF8D8]">
+                رویداد زادروز پرسنل سیستم ۲۰۷۷
+              </span>
+              <span className="text-[11px] text-[#F5F5F5] truncate mt-0.5">
+                {otherStaffBirthdays
+                  .map((b) =>
+                    b.info.isToday
+                      ? `امروز زادروز «${b.person.fullName}» (ارتقا به LVL ${toPersianDigits(b.info.level)}) مبارک!`
+                      : `تنها ${toPersianDigits(b.info.daysRemaining)} روز تا زادروز «${b.person.fullName}» (ارتقا به LVL ${toPersianDigits(b.info.nextLevel)}) باقی مانده است.`
+                  )
+                  .join(' • ')}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Top Bar */}
       <StaffMetricsBar

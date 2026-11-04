@@ -12,6 +12,7 @@ import { GameModal } from './components/GameModal';
 import { NotificationModal } from './components/NotificationModal';
 import { ReloadPrompt } from './components/ReloadPrompt';
 import { webNotifications } from './services/webNotificationService';
+import { getStaffLevelAndBirthdayInfo } from './utils/jalali';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => db.getCurrentUser());
@@ -56,6 +57,17 @@ export function App() {
     setActiveTab('staff');
   };
 
+  // Birthday notifications: ONLY for other staff (never notify current user of their own birthday)
+  const otherStaffBirthdays = currentUser
+    ? profiles
+        .filter((p) => p.id !== currentUser.id)
+        .map((p) => ({
+          person: p,
+          info: getStaffLevelAndBirthdayInfo(p.birthYear, p.birthMonthNum || p.birthMonth, p.birthDay),
+        }))
+        .filter((b) => b.info.isToday || b.info.isUpcoming3Days)
+    : [];
+
   // Calculate pending tasks for current user
   const myPendingTasksCount = currentUser
     ? tasks.filter(
@@ -75,8 +87,10 @@ export function App() {
     );
     const hasPendingTasks = myPendingTasksCount > 0;
 
-    if (hasUrgent || hasAnnouncement || hasPendingTasks) {
-      const noticeSig = `${announcement.id || ''}-${announcement.priority || ''}-${announcement.createdAt || ''}-${myPendingTasksCount}`;
+    const hasBirthdays = otherStaffBirthdays.length > 0;
+    if (hasUrgent || hasAnnouncement || hasPendingTasks || hasBirthdays) {
+      const bdaySig = otherStaffBirthdays.map((b) => `${b.person.id}:${b.info.daysRemaining}`).join(',');
+      const noticeSig = `${announcement.id || ''}-${announcement.priority || ''}-${announcement.createdAt || ''}-${myPendingTasksCount}-${bdaySig}`;
       const lastSeen = sessionStorage.getItem('2077_last_seen_notice_sig');
       if (lastSeen !== noticeSig) {
         setIsNotificationModalOpen(true);
@@ -85,6 +99,9 @@ export function App() {
         // Also trigger OS system notification if granted!
         if (hasUrgent) {
           webNotifications.notifyEmergencyAlert(announcement.title, announcement.content);
+        } else if (hasBirthdays) {
+          const bdayNames = otherStaffBirthdays.map((b) => b.person.fullName).join(' و ');
+          webNotifications.notifyBirthday(bdayNames, otherStaffBirthdays.some((b) => b.info.isToday));
         } else if (hasPendingTasks && lastSeen) {
           webNotifications.notifyNewTask('شما وظیفه جدید در انتظار اقدام دارید.');
         }
@@ -101,7 +118,10 @@ export function App() {
     );
   }
 
-  const unreadNoticeCount = myPendingTasksCount + (announcement?.priority === 'فوری' ? 1 : 0);
+  const unreadNoticeCount =
+    myPendingTasksCount +
+    (announcement?.priority === 'فوری' ? 1 : 0) +
+    otherStaffBirthdays.length;
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#1D1D1B] text-[#F5F5F5] selection:bg-[#5DF8D8] selection:text-[#0A2821]">

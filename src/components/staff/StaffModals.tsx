@@ -4,7 +4,7 @@ import { CyberAvatar } from '../CyberAvatar';
 import { sound } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { db } from '../../services/db';
-import { formatBirthdate, toPersianDigits } from '../../utils/jalali';
+import { formatBirthdate, toPersianDigits, getStaffLevelAndBirthdayInfo } from '../../utils/jalali';
 import { getPresenceConfig } from '../../utils/presenceConstants';
 
 interface StaffCallModalProps {
@@ -78,6 +78,12 @@ export const StaffDossierModal: React.FC<StaffDossierModalProps> = ({ person, on
     person.presenceStatus || (person.isOnline ? 'ON_DUTY' : 'OFF_LINE')
   );
 
+  const levelInfo = getStaffLevelAndBirthdayInfo(
+    person.birthYear,
+    person.birthMonthNum || person.birthMonth,
+    person.birthDay
+  );
+
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-[#141413] border border-[#5DF8D8]/50 rounded-2xl p-5 shadow-2xl flex flex-col gap-4 text-right">
@@ -119,7 +125,27 @@ export const StaffDossierModal: React.FC<StaffDossierModalProps> = ({ person, on
             <span className="text-white font-medium">{person.shiftName}</span>
           </div>
           <div className="flex justify-between border-b border-white/5 pb-1.5">
-            <span className="text-[#A3A39E]">تاریخ تولد:</span>
+            <span className="text-[#A3A39E]">تاریخ تولد و سن:</span>
+            <span className="text-white font-medium">
+              {formatBirthdate(person.birthDay, person.birthMonth)} {toPersianDigits(person.birthYear)} ({toPersianDigits(levelInfo.level)} ساله)
+            </span>
+          </div>
+          <div className="flex justify-between border-b border-white/5 pb-1.5 items-center">
+            <span className="text-[#A3A39E]">سطح سایبری (Level):</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-xs font-bold text-[#5DF8D8] bg-[#5DF8D8]/10 px-1.5 py-0.5 rounded border border-[#5DF8D8]/30">
+                LVL.{toPersianDigits(levelInfo.level)}
+              </span>
+              <div className="w-14 h-1.5 bg-[#0D0D0C] border border-[#5DF8D8]/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#5DF8D8] to-[#F62477] rounded-full"
+                  style={{ width: `${levelInfo.progressPercent}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-[#A3A39E] font-mono">%{toPersianDigits(levelInfo.progressPercent)}</span>
+            </div>
+          </div>
+          <div className="hidden">
             <span className="text-white font-medium">
               {formatBirthdate(person.birthDay, person.birthMonth)} {toPersianDigits(person.birthYear)}
             </span>

@@ -98,3 +98,67 @@ export function toPersianDigits(input: string | number): string {
   const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   return str.replace(/[0-9]/g, (w) => persianDigits[parseInt(w, 10)]);
 }
+
+export interface BirthdayLevelInfo {
+  level: number;
+  nextLevel: number;
+  progressPercent: number;
+  daysRemaining: number;
+  isToday: boolean;
+  isUpcoming3Days: boolean;
+}
+
+export function getDayOfJalaliYear(monthNum: number, day: number): number {
+  const m = Math.max(1, Math.min(12, monthNum));
+  const d = Math.max(1, Math.min(31, day));
+  return m <= 6 ? (m - 1) * 31 + d : 186 + (m - 7) * 30 + d;
+}
+
+/**
+ * Calculates current level (age), progress to next level, and birthday proximity.
+ */
+export function getStaffLevelAndBirthdayInfo(
+  birthYear: number,
+  birthMonth: string | number,
+  birthDay: number
+): BirthdayLevelInfo {
+  const today = getTodayJalali();
+  const mNum = typeof birthMonth === 'number' ? birthMonth : getMonthNumber(birthMonth);
+  const safeBirthYear = Number(birthYear) || 1375;
+  const safeDay = Number(birthDay) || 1;
+
+  const todayDoy = getDayOfJalaliYear(today.jm, today.jd);
+  const birthDoy = getDayOfJalaliYear(mNum, safeDay);
+
+  let daysRemaining: number;
+  let elapsedSinceLastBday: number;
+  let level: number;
+
+  if (todayDoy === birthDoy) {
+    daysRemaining = 0;
+    elapsedSinceLastBday = 365;
+    level = Math.max(1, today.jy - safeBirthYear);
+  } else if (todayDoy < birthDoy) {
+    daysRemaining = birthDoy - todayDoy;
+    elapsedSinceLastBday = 365 - daysRemaining;
+    level = Math.max(1, today.jy - safeBirthYear - 1);
+  } else {
+    daysRemaining = (365 - todayDoy) + birthDoy;
+    elapsedSinceLastBday = todayDoy - birthDoy;
+    level = Math.max(1, today.jy - safeBirthYear);
+  }
+
+  const progressPercent =
+    daysRemaining === 0
+      ? 100
+      : Math.min(100, Math.max(0, Math.round((elapsedSinceLastBday / 365) * 100)));
+
+  return {
+    level,
+    nextLevel: level + 1,
+    progressPercent,
+    daysRemaining,
+    isToday: daysRemaining === 0,
+    isUpcoming3Days: daysRemaining > 0 && daysRemaining <= 3,
+  };
+}

@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../../types';
-import { getMonthNumber } from '../../utils/jalali';
+import { PERSIAN_MONTHS, getMonthNumber } from '../../utils/jalali';
 import { sound } from '../../utils/audio';
 import { triggerHaptic } from '../../utils/haptics';
 import { processCyberpunkPhoto } from '../../utils/cyberFilter';
 
 const AVATAR_PRESETS = [
-  '/brand/logo-magenta.png',
-  '/brand/logo-mint.png',
-  '/brand/logo-white.png',
-  '/avatars/admin.svg',
-  '/avatars/avatar1.svg',
-  '/avatars/avatar2.svg',
-  '/avatars/avatar3.svg',
-  '/avatars/avatar4.svg',
-  '/avatars/avatar5.svg',
-  '/avatars/avatar6.svg',
+  '/brand/logo-magenta.png', '/brand/logo-mint.png', '/brand/logo-white.png',
+  '/avatars/admin.svg', '/avatars/avatar1.svg', '/avatars/avatar2.svg',
+  '/avatars/avatar3.svg', '/avatars/avatar4.svg', '/avatars/avatar5.svg', '/avatars/avatar6.svg',
 ];
 
 interface StaffFormModalProps {
@@ -49,35 +42,19 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   const [isProcessingFilter, setIsProcessingFilter] = useState(false);
 
   useEffect(() => {
-    if (editingPerson) {
-      setFullName(editingPerson.fullName);
-      setRoleTitle(editingPerson.roleTitle);
-      setDepartment(editingPerson.department);
-      setUsername(editingPerson.username);
-      setPassword(editingPerson.passwordHash);
-      setAvatarUrl(editingPerson.avatarUrl);
-      setBirthDay(editingPerson.birthDay);
-      setBirthMonth(editingPerson.birthMonth);
-      setBirthYear(editingPerson.birthYear);
-      setShiftName(editingPerson.shiftName);
-      setPhoneNumber(editingPerson.phoneNumber || '');
-      setInternalExt(editingPerson.internalExt || '');
-      setIsAdminUser(editingPerson.isAdmin);
-    } else {
-      setFullName('');
-      setRoleTitle('متخصص فروش // FIXER');
-      setDepartment('FRONT-DESK');
-      setUsername('');
-      setPassword('');
-      setAvatarUrl(AVATAR_PRESETS[0]);
-      setBirthDay(19);
-      setBirthMonth('خرداد');
-      setBirthYear(1383);
-      setShiftName('شیفت روز');
-      setPhoneNumber('');
-      setInternalExt('');
-      setIsAdminUser(false);
-    }
+    setFullName(editingPerson?.fullName || '');
+    setRoleTitle(editingPerson?.roleTitle || 'متخصص فروش // FIXER');
+    setDepartment(editingPerson?.department || 'FRONT-DESK');
+    setUsername(editingPerson?.username || '');
+    setPassword(editingPerson?.passwordHash || '');
+    setAvatarUrl(editingPerson?.avatarUrl || AVATAR_PRESETS[0]);
+    setBirthDay(editingPerson?.birthDay || 19);
+    setBirthMonth(editingPerson?.birthMonth || 'خرداد');
+    setBirthYear(editingPerson?.birthYear || 1383);
+    setShiftName(editingPerson?.shiftName || 'شیفت روز');
+    setPhoneNumber(editingPerson?.phoneNumber || '');
+    setInternalExt(editingPerson?.internalExt || '');
+    setIsAdminUser(Boolean(editingPerson?.isAdmin));
   }, [editingPerson, isOpen]);
 
   if (!isOpen) return null;
@@ -124,10 +101,10 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       username: cleanUsername,
       passwordHash: cleanPassword,
       avatarUrl,
-      birthDay: Number(birthDay),
+      birthDay: Number(birthDay) || 1,
       birthMonth,
       birthMonthNum: getMonthNumber(birthMonth),
-      birthYear: Number(birthYear),
+      birthYear: Number(birthYear) || 1375,
       shiftName,
       phoneNumber: phoneNumber.trim() || undefined,
       internalExt: internalExt.trim() || undefined,
@@ -154,13 +131,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
           <label className="inline-flex items-center gap-1.5 py-1 px-3 bg-[#5DF8D8]/10 hover:bg-[#5DF8D8]/20 border border-[#5DF8D8]/40 text-[#5DF8D8] rounded-lg text-xs font-bold cursor-pointer transition-colors">
             <span className="material-symbols-outlined text-[15px]">add_photo_alternate</span>
             <span>{isProcessingFilter ? 'در حال اعمال فیلتر...' : 'آپلود و فیلتر سایبرپانک'}</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={isProcessingFilter}
-            />
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isProcessingFilter} />
           </label>
         </div>
       </div>
@@ -208,6 +179,57 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
             placeholder="1234"
             required
           />
+        </div>
+      </div>
+
+      {/* Solar Jalali Birthdate Fields */}
+      <div className="flex flex-col gap-1 text-right bg-[#0E0E0D] p-2.5 rounded-xl border border-white/5">
+        <label className="text-[11px] text-[#A3A39E] flex items-center justify-between">
+          <span className="flex items-center gap-1 text-[#5DF8D8] font-bold">
+            <span className="material-symbols-outlined text-[15px]">cake</span>
+            <span>تاریخ تولد شمسی (محاسبه سن، سطح و نوتیف زادروز):</span>
+          </span>
+          <span className="text-[10px] text-[#5DF8D8] font-mono">تقویم جلالی</span>
+        </label>
+        <div className="grid grid-cols-3 gap-2 text-center pt-1">
+          <div className="flex flex-col">
+            <input
+              type="number"
+              min="1"
+              max="31"
+              value={birthDay}
+              onChange={(e) => setBirthDay(Number(e.target.value))}
+              className="w-full bg-[#141413] border border-white/10 rounded-lg p-2 text-xs text-white text-center font-mono focus:border-[#5DF8D8] outline-none"
+              placeholder="روز"
+              required
+            />
+            <span className="text-[10px] text-[#A3A39E] mt-0.5">روز (۱-۳۱)</span>
+          </div>
+          <div className="flex flex-col">
+            <select
+              value={birthMonth}
+              onChange={(e) => setBirthMonth(e.target.value)}
+              className="w-full bg-[#141413] border border-white/10 rounded-lg p-2 text-xs text-white text-center focus:border-[#5DF8D8] outline-none"
+            >
+              {PERSIAN_MONTHS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <span className="text-[10px] text-[#A3A39E] mt-0.5">ماه</span>
+          </div>
+          <div className="flex flex-col">
+            <input
+              type="number"
+              min="1330"
+              max="1420"
+              value={birthYear}
+              onChange={(e) => setBirthYear(Number(e.target.value))}
+              className="w-full bg-[#141413] border border-white/10 rounded-lg p-2 text-xs text-white text-center font-mono focus:border-[#5DF8D8] outline-none"
+              placeholder="سال"
+              required
+            />
+            <span className="text-[10px] text-[#A3A39E] mt-0.5">سال تولد</span>
+          </div>
         </div>
       </div>
 

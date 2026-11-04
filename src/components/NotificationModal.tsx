@@ -1,6 +1,6 @@
 import React from 'react';
 import { Announcement, Task, UserProfile } from '../types';
-import { getTodayJalali, getMonthNumber, toPersianDigits } from '../utils/jalali';
+import { toPersianDigits, getStaffLevelAndBirthdayInfo } from '../utils/jalali';
 import { sound } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { getAssetUrl } from '../utils/assets';
@@ -29,13 +29,22 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const today = getTodayJalali();
+  // 1. Birthdays: ONLY for other staff (never notify current user of their own birthday)
+  const otherStaff = profiles.filter((p) => p.id !== currentUser.id);
 
-  // 1. Birthdays today
-  const birthdayStaff = profiles.filter((p) => {
-    const pMonthNum = p.birthMonthNum || getMonthNumber(p.birthMonth);
-    return p.birthDay === today.jd && pMonthNum === today.jm;
-  });
+  const birthdaysToday = otherStaff
+    .map((p) => ({
+      person: p,
+      info: getStaffLevelAndBirthdayInfo(p.birthYear, p.birthMonthNum || p.birthMonth, p.birthDay),
+    }))
+    .filter((item) => item.info.isToday);
+
+  const upcomingBirthdays = otherStaff
+    .map((p) => ({
+      person: p,
+      info: getStaffLevelAndBirthdayInfo(p.birthYear, p.birthMonthNum || p.birthMonth, p.birthDay),
+    }))
+    .filter((item) => item.info.isUpcoming3Days);
 
   // 2. Pending tasks relevant to this user (global or assigned specifically to this user)
   const pendingTasks = tasks.filter(
@@ -151,16 +160,31 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               </div>
             )}
 
-            {/* Card 2: Birthdays Today */}
-            {birthdayStaff.length > 0 && (
+            {/* Card 2: Birthdays Today (Other staff only) */}
+            {birthdaysToday.length > 0 && (
               <div className="p-3.5 rounded-xl bg-[#5DF8D8]/10 border border-[#5DF8D8]/40 flex items-center gap-3">
-                <span className="text-2xl">🎂</span>
+                <span className="text-2xl animate-bounce">🎂</span>
                 <div className="flex flex-col text-right">
                   <span className="text-xs font-bold text-[#5DF8D8]">
-                    رویداد خجسته // زادروز همکاران سیستم
+                    رویداد خجسته // زادروز امروز همکاران
                   </span>
                   <span className="text-xs text-[#F5F5F5] mt-0.5">
-                    امروز زادروز {birthdayStaff.map((p) => `«${p.fullName}»`).join(' و ')} است! شادباش بگویید.
+                    امروز زادروز {birthdaysToday.map((b) => `«${b.person.fullName}» (ارتقا به لول ${toPersianDigits(b.info.level)})`).join(' و ')} است! شادباش بگویید.
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Card 2.5: Upcoming Birthdays (3 days away, other staff only) */}
+            {upcomingBirthdays.length > 0 && (
+              <div className="p-3.5 rounded-xl bg-[#F62477]/10 border border-[#F62477]/40 flex items-center gap-3">
+                <span className="text-2xl animate-pulse">⚡</span>
+                <div className="flex flex-col text-right">
+                  <span className="text-xs font-bold text-[#F62477]">
+                    شمارش معکوس زادروز همکاران سیستم (۳ روز مانده)
+                  </span>
+                  <span className="text-xs text-[#F5F5F5] mt-0.5">
+                    {upcomingBirthdays.map((b) => `تنها ${toPersianDigits(b.info.daysRemaining)} روز تا سالروز تولد «${b.person.fullName}» (ارتقا به لول ${toPersianDigits(b.info.nextLevel)}) باقی مانده است!`).join(' | ')}
                   </span>
                 </div>
               </div>
@@ -223,13 +247,13 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             )}
 
             {/* Empty State */}
-            {!hasActiveAnnouncement && birthdayStaff.length === 0 && pendingTasks.length === 0 && (
+            {!hasActiveAnnouncement && birthdaysToday.length === 0 && upcomingBirthdays.length === 0 && pendingTasks.length === 0 && (
               <div className="p-8 text-center flex flex-col items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-4xl text-[#5DF8D8]/40">
                   mark_email_read
                 </span>
                 <p className="text-xs text-[#A3A39E]">
-                  کلیه اعلانات و پیام‌ها بررسی شده‌اند و مورد فوری جدیدی وجود ندارد.
+                  کلیه اعلانات و پیام‌ها بررسی شده‌اند و مورد جدیدی وجود ندارد.
                 </p>
               </div>
             )}

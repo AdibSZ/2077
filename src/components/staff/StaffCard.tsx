@@ -3,6 +3,11 @@ import { UserProfile } from '../../types';
 import { CyberAvatar } from '../CyberAvatar';
 import { sound } from '../../utils/audio';
 import { getPresenceConfig } from '../../utils/presenceConstants';
+import {
+  formatBirthdate,
+  toPersianDigits,
+  getStaffLevelAndBirthdayInfo,
+} from '../../utils/jalali';
 
 interface StaffCardProps {
   person: UserProfile;
@@ -24,12 +29,18 @@ export const StaffCard: React.FC<StaffCardProps> = ({
     person.presenceStatus || (person.isOnline ? 'ON_DUTY' : 'OFF_LINE')
   );
 
+  const levelInfo = getStaffLevelAndBirthdayInfo(
+    person.birthYear,
+    person.birthMonthNum || person.birthMonth,
+    person.birthDay
+  );
+
   return (
     <div className="cyber-single-frame select-none">
       <div className="cyber-single-content p-3.5 flex flex-col gap-3">
         {/* Top: Avatar + Staff Info + Presence Badge */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <CyberAvatar
               src={person.avatarUrl}
               alt={person.fullName}
@@ -37,17 +48,52 @@ export const StaffCard: React.FC<StaffCardProps> = ({
               isOnline={person.isOnline}
               neonBorder={person.isAdmin ? 'magenta' : 'mint'}
             />
-            <div className="flex flex-col text-right truncate">
-              <div className="flex items-center gap-1.5 mb-0.5">
+            <div className="flex flex-col text-right truncate flex-1 min-w-0">
+              {/* Row 1: Name + Admin + Cyberpunk Level Badge + XP Progress Bar */}
+              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                 <span className="text-sm font-bold text-white truncate">{person.fullName}</span>
                 {person.isAdmin && (
                   <span className="text-[9px] bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] px-1.5 py-0.2 rounded font-bold font-mono">
                     ADMIN
                   </span>
                 )}
+                {/* Cyberpunk Level Badge */}
+                <span
+                  className="text-[10px] bg-[#5DF8D8]/10 border border-[#5DF8D8]/50 text-[#5DF8D8] px-1.5 py-0.5 rounded font-mono font-bold tracking-wider shadow-[0_0_8px_rgba(93,248,216,0.25)] flex items-center gap-1 shrink-0"
+                  title={`سطح بر اساس سن: ${toPersianDigits(levelInfo.level)} سال`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#5DF8D8] animate-pulse" />
+                  <span>LVL.{toPersianDigits(levelInfo.level)}</span>
+                </span>
+
+                {/* Progress bar to next level */}
+                <div
+                  className="flex items-center gap-1 min-w-[65px] max-w-[90px] flex-1"
+                  title={`${toPersianDigits(levelInfo.progressPercent)}٪ تا لول ${toPersianDigits(levelInfo.nextLevel)} (${toPersianDigits(levelInfo.daysRemaining)} روز مانده)`}
+                >
+                  <div className="flex-1 h-1.5 bg-[#0D0D0C] border border-[#5DF8D8]/40 rounded-full overflow-hidden p-[0.5px]">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#5DF8D8] to-[#F62477] rounded-full transition-all duration-500 shadow-[0_0_6px_#5DF8D8]"
+                      style={{ width: `${levelInfo.progressPercent}%` }}
+                    />
+                  </div>
+                  <span className="text-[9px] font-mono text-[#5DF8D8] font-bold shrink-0">
+                    %{toPersianDigits(levelInfo.progressPercent)}
+                  </span>
+                </div>
+
+                {levelInfo.isToday && (
+                  <span className="text-[9px] bg-[#F62477] text-white px-1.5 py-0.5 rounded font-bold animate-bounce shadow-[0_0_8px_#F62477]">
+                    🎉 زادروز امروز!
+                  </span>
+                )}
               </div>
+
+              {/* Row 2: Role Title */}
               <span className="text-xs text-[#5DF8D8] font-medium truncate">{person.roleTitle}</span>
-              <div className="flex items-center gap-2 text-[11px] text-[#A3A39E] mt-0.5">
+
+              {/* Row 3: Shift + Ext + Birthdate */}
+              <div className="flex items-center gap-2 text-[11px] text-[#A3A39E] mt-0.5 flex-wrap">
                 <span>{person.shiftName}</span>
                 {person.internalExt && (
                   <>
@@ -55,6 +101,14 @@ export const StaffCard: React.FC<StaffCardProps> = ({
                     <span className="font-mono">داخلی: {person.internalExt}</span>
                   </>
                 )}
+                <span>•</span>
+                {/* Birthdate */}
+                <div className="flex items-center gap-1 text-[#5DF8D8]" title="تاریخ تولد">
+                  <span className="material-symbols-outlined text-[13px]">cake</span>
+                  <span className="font-medium">
+                    {formatBirthdate(person.birthDay, person.birthMonth)} {toPersianDigits(person.birthYear)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

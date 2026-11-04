@@ -95,6 +95,19 @@ class WebNotificationService {
     });
   }
 
+  public notifyBirthday(names: string, isToday = true): void {
+    sound.play('score');
+    this.showNotification(
+      isToday ? '🎂 زادروز همکاران سیستم ۲۰۷۷' : '⚡ شمارش معکوس زادروز همکاران',
+      {
+        body: isToday
+          ? `امروز زادروز ${names} است! شادباش بگویید.`
+          : `تنها ۳ روز تا سالروز تولد ${names} باقی مانده است.`,
+        tag: 'birthday-notice',
+      }
+    );
+  }
+
   public notifyNewTask(taskTitle: string, isGlobal = false): void {
     sound.play('tap');
     this.showNotification(
