@@ -7,6 +7,7 @@ import { CyberAvatar } from './CyberAvatar';
 import { CheckUpdateButton } from './CheckUpdateButton';
 import { CyberPresenceSelector } from './presence/CyberPresenceSelector';
 import { CyberAvatarBuilderModal } from './avatar/CyberAvatarBuilderModal';
+import { processCyberpunkPhoto } from '../utils/cyberFilter';
 import { db } from '../services/db';
 
 interface HeaderProps {
@@ -76,6 +77,20 @@ export const Header: React.FC<HeaderProps> = ({
     setNoticeMessage('آواتار سایبری با موفقیت ثبت و ذخیره شد.');
     setTimeout(() => setNoticeMessage(null), 2500);
     onRefresh?.();
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setNoticeMessage('در حال اعمال فیلتر سایبرپانک روی عکس...');
+      const processed = await processCyberpunkPhoto(file);
+      await handleSaveAvatar(processed);
+      setShowProfileMenu(false);
+    } catch {
+      setNoticeMessage('خطا در پردازش تصویر!');
+      setTimeout(() => setNoticeMessage(null), 2500);
+    }
   };
 
   const getTabTitle = () => {
@@ -233,6 +248,18 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
                 <span>طراحی آواتار سایبری (Forge)</span>
               </button>
+
+              {/* Cyberpunk Photo Upload Button */}
+              <label className="w-full py-2 px-3 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer">
+                <span className="material-symbols-outlined text-[16px] text-[#5DF8D8]">add_a_photo</span>
+                <span>آپلود عکس پرسنلی (سایبرپانک)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+              </label>
 
               <button
                 type="button"

@@ -266,5 +266,11 @@ export function generateCyberAvatarSvg(cfg: CyberAvatarConfig): string {
 }
 
 export function svgToDataUri(svgString: string): string {
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`;
+  try {
+    if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+      const b64 = window.btoa(unescape(encodeURIComponent(svgString)));
+      return `data:image/svg+xml;base64,${b64}`;
+    }
+  } catch {}
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
 }

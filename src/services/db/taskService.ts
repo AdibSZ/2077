@@ -45,7 +45,7 @@ export class TaskService {
     this.saveTasksLocally();
 
     if (this.onCloudSave) {
-      this.onCloudSave(newTask).catch(() => {});
+      await this.onCloudSave(newTask).catch(() => {});
     }
 
     return newTask;
@@ -79,7 +79,7 @@ export class TaskService {
     this.saveTasksLocally();
 
     if (this.onCloudSave) {
-      this.onCloudSave(updated).catch(() => {});
+      await this.onCloudSave(updated).catch(() => {});
     }
 
     return updated;
@@ -92,7 +92,7 @@ export class TaskService {
     if (this.tasks.length !== prevLength) {
       this.saveTasksLocally();
       if (this.onCloudDelete) {
-        this.onCloudDelete(taskId).catch(() => {});
+        await this.onCloudDelete(taskId).catch(() => {});
       }
       return true;
     }

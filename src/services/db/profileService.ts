@@ -101,7 +101,7 @@ export class ProfileService {
 
     // Instant cloud persistence
     if (this.onCloudSave) {
-      this.onCloudSave(fullProfile).catch(() => {});
+      await this.onCloudSave(fullProfile).catch(() => {});
     }
 
     return fullProfile;
@@ -134,7 +134,7 @@ export class ProfileService {
 
     // Instant cloud persistence
     if (this.onCloudSave) {
-      this.onCloudSave(updated).catch(() => {});
+      await this.onCloudSave(updated).catch(() => {});
     }
 
     return updated;
@@ -147,7 +147,7 @@ export class ProfileService {
     if (this.profiles.length !== prevLength) {
       this.saveProfilesLocally();
       if (this.onCloudDelete) {
-        this.onCloudDelete(id).catch(() => {});
+        await this.onCloudDelete(id).catch(() => {});
       }
       return true;
     }

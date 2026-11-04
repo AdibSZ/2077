@@ -79,6 +79,14 @@ export class CloudSyncService {
       if (cloudProfiles && cloudProfiles.length > 0) {
         const parsedProfiles = cloudProfiles.map(fromCloudProfile);
         StorageVault.setItem(STORAGE_KEYS.PROFILES, parsedProfiles);
+
+        const currentSession = StorageVault.getItem<UserProfile | null>(STORAGE_KEYS.AUTH_SESSION, null);
+        if (currentSession) {
+          const freshUser = parsedProfiles.find((p) => p.id === currentSession.id);
+          if (freshUser) {
+            StorageVault.setItem(STORAGE_KEYS.AUTH_SESSION, freshUser);
+          }
+        }
       }
 
       // 2. Pull Tasks

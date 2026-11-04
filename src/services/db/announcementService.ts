@@ -35,7 +35,7 @@ export class AnnouncementService {
     this.saveAnnouncementLocally();
 
     if (this.onCloudSave) {
-      this.onCloudSave(this.announcement).catch(() => {});
+      await this.onCloudSave(this.announcement).catch(() => {});
     }
 
     return this.announcement;
@@ -66,7 +66,7 @@ export class AnnouncementService {
     this.saveAnnouncementLocally();
 
     if (this.onCloudSave) {
-      this.onCloudSave(this.announcement).catch(() => {});
+      await this.onCloudSave(this.announcement).catch(() => {});
     }
 
     return this.announcement;

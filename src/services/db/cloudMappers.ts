@@ -14,7 +14,7 @@ export function toCloudProfile(p: UserProfile): Record<string, any> {
   return {
     id: safeId,
     username: p.username,
-    password_hash: p.passwordHash,
+    password_hash: p.passwordHash || '1234',
     full_name: p.fullName,
     role_title: p.roleTitle || 'پرسنل',
     department: p.department || 'FRONT-DESK',
