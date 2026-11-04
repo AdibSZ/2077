@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
       const now = new Date();
       setLiveTime(
         now.toLocaleTimeString('fa-IR', {
-          hour: '2-digit',
+            hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
           hour12: false,
@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenNotifications}
             title="مرکز اعلانات و پیام‌های پایانه"
             aria-label="مرکز اعلانات"
-            className="w-9 h-9 bg-[#141413] border border-[#5DF8D8]/25 hover:border-[#5DF8D8] text-[#5DF8D8] flex items-center justify-center transition-colors active:scale-95 relative cyber-chamfer-btn-sm"
+            className="w-9 h-9 bg-[#161615] hover:bg-[#222220] text-[#5DF8D8] flex items-center justify-center transition-all active:scale-95 relative cyber-chamfer-btn-sm shadow-sm"
           >
             <span className="material-symbols-outlined text-[18px]">notifications</span>
             {unreadNotificationCount > 0 && (
@@ -144,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={handleToggleAudio}
             title={isMuted ? 'فعال‌سازی صداهای سیستم' : 'بی‌صدا کردن سیستم'}
             aria-label="کنترل صدای سیستم"
-            className="w-9 h-9 bg-[#141413] border border-[#5DF8D8]/25 hover:border-[#5DF8D8] text-[#5DF8D8] flex items-center justify-center transition-colors active:scale-95 cyber-chamfer-btn-sm"
+            className="w-9 h-9 bg-[#161615] hover:bg-[#222220] text-[#5DF8D8] flex items-center justify-center transition-all active:scale-95 cyber-chamfer-btn-sm shadow-sm"
           >
             <span className="material-symbols-outlined text-[18px]">
               {isMuted ? 'volume_off' : 'volume_up'}
@@ -173,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Profile Dropdown */}
           {showProfileMenu && (
-            <div className="absolute left-0 top-12 w-64 bg-[#141413] border border-[#5DF8D8]/30 rounded-xl p-3 shadow-2xl z-50 flex flex-col gap-2.5 backdrop-blur-2xl [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)]">
+            <div className="absolute left-0 top-12 w-64 bg-[#141413] border border-[#5DF8D8]/30 rounded-xl p-3 shadow-2xl z-50 flex flex-col gap-2.5 backdrop-blur-2xl">
               <div className="flex items-center gap-2 pb-2.5 border-b border-[#252523]">
                 <CyberAvatar
                   src={currentUser.avatarUrl}
@@ -222,7 +222,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowProfileMenu(false);
                   setShowAvatarModal(true);
                 }}
-                className="w-full py-1.5 px-3 bg-[#5DF8D8]/10 hover:bg-[#5DF8D8]/20 text-[#5DF8D8] border border-[#5DF8D8]/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 cyber-chamfer-btn-sm"
+                className="w-full py-2 px-3 bg-[#5DF8D8]/10 hover:bg-[#5DF8D8]/20 text-[#5DF8D8] border border-[#5DF8D8]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95"
               >
                 <span className="material-symbols-outlined text-[16px]">
                   face_retouching_natural
@@ -236,7 +236,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowProfileMenu(false);
                   onLogout();
                 }}
-                className="w-full mt-1 py-2 px-3 bg-[#F62477]/15 hover:bg-[#F62477] text-[#F62477] hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-[0_0_10px_rgba(246,36,119,0.2)] active:scale-95 cyber-chamfer-btn-sm"
+                className="w-full mt-1 py-2 px-3 bg-[#F62477] hover:bg-[#ff1a6c] text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-[0_0_12px_rgba(246,36,119,0.35)] active:scale-95"
               >
                 <span className="material-symbols-outlined text-[16px]">logout</span>
                 <span>خروج از حساب (Logout)</span>

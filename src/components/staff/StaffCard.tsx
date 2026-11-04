@@ -25,99 +25,102 @@ export const StaffCard: React.FC<StaffCardProps> = ({
   );
 
   return (
-    <div className="bg-[#121211] border border-[#5DF8D8]/20 hover:border-[#5DF8D8]/50 p-3.5 shadow-lg transition-all flex flex-col gap-3 cyber-chamfer-card-single select-none">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <CyberAvatar
-            src={person.avatarUrl}
-            alt={person.fullName}
-            size="md"
-            isOnline={person.isOnline}
-            neonBorder={person.isAdmin ? 'magenta' : 'mint'}
-          />
-          <div className="flex flex-col text-right truncate">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-sm font-bold text-white truncate">{person.fullName}</span>
-              {person.isAdmin && (
-                <span className="text-[9px] bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] px-1.5 py-0.2 rounded font-bold font-mono">
-                  ADMIN
-                </span>
-              )}
+    <div className="cyber-single-frame select-none">
+      <div className="cyber-single-content p-3.5 flex flex-col gap-3">
+        {/* Top: Avatar + Staff Info + Presence Badge */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <CyberAvatar
+              src={person.avatarUrl}
+              alt={person.fullName}
+              size="md"
+              isOnline={person.isOnline}
+              neonBorder={person.isAdmin ? 'magenta' : 'mint'}
+            />
+            <div className="flex flex-col text-right truncate">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-sm font-bold text-white truncate">{person.fullName}</span>
+                {person.isAdmin && (
+                  <span className="text-[9px] bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] px-1.5 py-0.2 rounded font-bold font-mono">
+                    ADMIN
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-[#5DF8D8] font-medium truncate">{person.roleTitle}</span>
+              <div className="flex items-center gap-2 text-[11px] text-[#A3A39E] mt-0.5">
+                <span>{person.shiftName}</span>
+                {person.internalExt && (
+                  <>
+                    <span>•</span>
+                    <span className="font-mono">داخلی: {person.internalExt}</span>
+                  </>
+                )}
+              </div>
             </div>
-            <span className="text-xs text-[#5DF8D8] font-medium truncate">{person.roleTitle}</span>
-            <div className="flex items-center gap-2 text-[11px] text-[#A3A39E] mt-0.5">
-              <span>{person.shiftName}</span>
-              {person.internalExt && (
-                <>
-                  <span>•</span>
-                  <span>داخلی: {person.internalExt}</span>
-                </>
-              )}
-            </div>
+          </div>
+
+          {/* Live Presence Status Badge */}
+          <div
+            className="px-2.5 py-1 rounded-md border text-[10px] font-bold flex items-center gap-1.5 shrink-0 self-start mt-0.5 shadow-sm font-mono"
+            style={{
+              backgroundColor: presenceCfg.bg,
+              borderColor: presenceCfg.border,
+              color: presenceCfg.color,
+            }}
+            title={`وضعیت: ${presenceCfg.faLabel} (${presenceCfg.enLabel})`}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{
+                backgroundColor: presenceCfg.color,
+                boxShadow: `0 0 6px ${presenceCfg.color}`,
+              }}
+            />
+            <span>{presenceCfg.faLabel}</span>
           </div>
         </div>
 
-        {/* Live Presence Status Badge */}
-        <div
-          className="px-2 py-0.5 rounded-md border text-[10px] font-bold flex items-center gap-1 shrink-0 self-start mt-0.5 shadow-sm font-mono"
-          style={{
-            backgroundColor: presenceCfg.bg,
-            borderColor: presenceCfg.border,
-            color: presenceCfg.color,
-          }}
-          title={`وضعیت: ${presenceCfg.faLabel} (${presenceCfg.enLabel})`}
-        >
-          <span
-            className="w-1.5 h-1.5 rounded-full animate-pulse"
-            style={{
-              backgroundColor: presenceCfg.color,
-              boxShadow: `0 0 6px ${presenceCfg.color}`,
-            }}
-          />
-          <span>{presenceCfg.faLabel}</span>
-        </div>
-      </div>
-
-      {/* Cyber Action Buttons */}
-      <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-        <button
-          type="button"
-          onClick={() => {
-            sound.play('tap');
-            onCall(person);
-          }}
-          className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-[#5DF8D8]/15 text-[#5DF8D8] border border-[#5DF8D8]/30 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95 cyber-chamfer-btn-sm"
-        >
-          <span className="material-symbols-outlined text-[15px]">call</span>
-          <span>تماس / داخلی</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            sound.play('tap');
-            onDossier(person);
-          }}
-          className="flex-1 py-1.5 px-2 bg-white/5 hover:bg-white/10 text-white border border-white/15 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95 cyber-chamfer-btn-sm"
-        >
-          <span className="material-symbols-outlined text-[15px]">badge</span>
-          <span>مشخصات</span>
-        </button>
-
-        {isAdmin && (
+        {/* Cyber Action Buttons */}
+        <div className="flex items-center gap-2 pt-2 border-t border-white/5">
           <button
             type="button"
             onClick={() => {
               sound.play('tap');
-              onAssignTask(person);
+              onCall(person);
             }}
-            className="py-1.5 px-2.5 bg-[#F62477]/15 hover:bg-[#F62477] text-[#F62477] hover:text-white border border-[#F62477]/30 text-xs font-bold flex items-center justify-center gap-1 transition-all active:scale-95 shadow-[0_0_8px_rgba(246,36,119,0.25)] cyber-chamfer-btn-sm"
-            title="تعریف تسک برای این شخص"
+            className="flex-1 min-h-[38px] py-1.5 px-2 bg-[#181816] hover:bg-[#5DF8D8]/15 text-[#5DF8D8] border border-[#5DF8D8]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
           >
-            <span className="material-symbols-outlined text-[15px]">add_task</span>
-            <span>تسک</span>
+            <span className="material-symbols-outlined text-[16px]">call</span>
+            <span>تماس / داخلی</span>
           </button>
-        )}
+
+          <button
+            type="button"
+            onClick={() => {
+              sound.play('tap');
+              onDossier(person);
+            }}
+            className="flex-1 min-h-[38px] py-1.5 px-2 bg-[#181816] hover:bg-white/10 text-white border border-white/15 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+          >
+            <span className="material-symbols-outlined text-[16px]">badge</span>
+            <span>مشخصات</span>
+          </button>
+
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.play('tap');
+                onAssignTask(person);
+              }}
+              className="min-h-[38px] py-1.5 px-3 bg-[#F62477] hover:bg-[#ff1a6c] active:bg-[#d0135b] text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-[0_0_12px_rgba(246,36,119,0.35)] shrink-0"
+              title="تعریف تسک برای این شخص"
+            >
+              <span className="material-symbols-outlined text-[16px]">add_task</span>
+              <span>تسک</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

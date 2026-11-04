@@ -65,9 +65,11 @@
 
 @layer base {
   html, body {
-    background-color: #0A0A09;
+    background-color: #080807;
     color: #F5F5F5;
     font-family: 'Peyda', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   button, input, select, textarea, span, p, h1, h2, h3, h4, h5, h6, label, div, a {
@@ -76,29 +78,127 @@
 }
 
 /* =========================================================================
-   SYS.2077 // CYBERPUNK 2077 CHAMFER & STYLING CLASSES
+   SYS.2077 // RAZOR-SHARP CYBERPUNK 2077 DUAL-LAYER CHAMFER SYSTEM
+   Eliminates blurry/faded corners by providing a continuous solid border
+   along all straight edges AND the 45-degree chamfer cuts.
    ========================================================================= */
 
 .cyber-matrix-bg {
-  background-color: #090908;
+  background-color: #080807;
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
   background-size: 18px 18px;
 }
 
+/* Symmetric Chamfer (Top-Left & Bottom-Right cuts) - MINT */
+.cyber-card-frame {
+  position: relative;
+  background: rgba(93, 248, 216, 0.35);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  padding: 1.5px;
+  transition: all 0.25s ease;
+}
+
+.cyber-card-frame:hover {
+  background: rgba(93, 248, 216, 0.7);
+  filter: drop-shadow(0 0 16px rgba(93, 248, 216, 0.25));
+}
+
+.cyber-card-content {
+  background: #0E0E0D;
+  clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px);
+  width: 100%;
+  height: 100%;
+}
+
+/* Symmetric Chamfer (Top-Left & Bottom-Right cuts) - MAGENTA */
+.cyber-card-frame-pink {
+  position: relative;
+  background: rgba(246, 36, 119, 0.4);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  padding: 1.5px;
+  transition: all 0.25s ease;
+}
+
+.cyber-card-frame-pink:hover {
+  background: rgba(246, 36, 119, 0.8);
+  filter: drop-shadow(0 0 16px rgba(246, 36, 119, 0.35));
+}
+
+.cyber-card-content-pink {
+  background: #0E0E0D;
+  clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px);
+  width: 100%;
+  height: 100%;
+}
+
+/* Single-Cut Chamfer (Bottom-Right cut) - MINT */
+.cyber-single-frame {
+  position: relative;
+  background: rgba(93, 248, 216, 0.28);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  padding: 1.5px;
+  transition: all 0.2s ease;
+}
+
+.cyber-single-frame:hover {
+  background: rgba(93, 248, 216, 0.65);
+  filter: drop-shadow(0 0 12px rgba(93, 248, 216, 0.25));
+}
+
+.cyber-single-content {
+  background: #111110;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%);
+  width: 100%;
+  height: 100%;
+}
+
+/* Single-Cut Chamfer (Bottom-Right cut) - MAGENTA */
+.cyber-single-frame-pink {
+  position: relative;
+  background: rgba(246, 36, 119, 0.35);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  padding: 1.5px;
+  transition: all 0.2s ease;
+}
+
+.cyber-single-frame-pink:hover {
+  background: rgba(246, 36, 119, 0.75);
+  filter: drop-shadow(0 0 14px rgba(246, 36, 119, 0.35));
+}
+
+.cyber-single-content-pink {
+  background: #111110;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%);
+  width: 100%;
+  height: 100%;
+}
+
+/* Solid Chamfered Buttons (Crisp 45-degree angle cuts) */
 .cyber-chamfer-btn {
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  transition: all 0.15s ease;
+}
+
+.cyber-chamfer-btn:active {
+  transform: scale(0.97);
 }
 
 .cyber-chamfer-btn-sm {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  transition: all 0.15s ease;
 }
 
-.cyber-chamfer-card {
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+.cyber-chamfer-btn-sm:active {
+  transform: scale(0.96);
 }
 
-.cyber-chamfer-card-single {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+/* Utility to hide scrollbars while maintaining touch scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .cyber-photo {

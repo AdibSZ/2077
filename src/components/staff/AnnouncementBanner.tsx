@@ -67,122 +67,120 @@ export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 
   return (
     <>
-      <div
-        className={`relative p-3.5 border cyber-chamfer-card-single backdrop-blur-md transition-all ${
-          isUrgent
-            ? 'bg-[#F62477]/15 border-[#F62477]/60 shadow-[0_0_20px_rgba(246,36,119,0.3)] animate-pulse'
-            : 'bg-[#141413] border-[#5DF8D8]/30 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
-        }`}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2.5 min-w-0">
-            <span
-              className={`material-symbols-outlined text-[20px] shrink-0 mt-0.5 ${
-                isUrgent ? 'text-[#F62477]' : 'text-[#5DF8D8]'
-              }`}
-            >
-              {isUrgent ? 'warning' : 'campaign'}
-            </span>
-            <div className="flex flex-col text-right">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-xs font-bold text-white">
-                  {announcement.title || 'تابلوی اعلانات فروشگاه'}
-                </span>
-                {isUrgent && (
-                  <span className="text-[9px] bg-[#F62477] text-white px-1.5 py-0.5 rounded font-black animate-bounce">
-                    فوری
+      <div className={`select-none ${isUrgent ? 'cyber-single-frame-pink' : 'cyber-single-frame'}`}>
+        <div className={`p-3.5 ${isUrgent ? 'cyber-single-content-pink' : 'cyber-single-content'}`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <span
+                className={`material-symbols-outlined text-[20px] shrink-0 mt-0.5 ${
+                  isUrgent ? 'text-[#F62477]' : 'text-[#5DF8D8]'
+                }`}
+              >
+                {isUrgent ? 'warning' : 'campaign'}
+              </span>
+              <div className="flex flex-col text-right">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xs font-bold text-white">
+                    {announcement.title || 'تابلوی اعلانات فروشگاه'}
                   </span>
-                )}
+                  {isUrgent && (
+                    <span className="text-[9px] bg-[#F62477] text-white px-1.5 py-0.5 rounded font-black animate-bounce">
+                      فوری
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#A3A39E] leading-relaxed">
+                  {hasContent ? announcement.content : 'هنوز اعلانی برای نمایش ثبت نشده است.'}
+                </p>
               </div>
-              <p className="text-xs text-[#A3A39E] leading-relaxed">
-                {hasContent ? announcement.content : 'هنوز اعلانی برای نمایش ثبت نشده است.'}
-              </p>
             </div>
-          </div>
 
-          {currentUser.isAdmin && (
-            <button
-              type="button"
-              onClick={handleOpenEdit}
-              className="p-1.5 bg-white/5 hover:bg-white/10 text-[#5DF8D8] border border-white/10 rounded-lg text-xs shrink-0 transition-colors"
-              title="ویرایش اعلان (مخصوص مدیر)"
-            >
-              <span className="material-symbols-outlined text-[16px]">edit_note</span>
-            </button>
-          )}
+            {currentUser.isAdmin && (
+              <button
+                type="button"
+                onClick={handleOpenEdit}
+                className="p-1.5 bg-white/5 hover:bg-white/10 text-[#5DF8D8] border border-white/10 rounded-lg text-xs shrink-0 transition-colors"
+                title="ویرایش اعلان (مخصوص مدیر)"
+              >
+                <span className="material-symbols-outlined text-[16px]">edit_note</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Admin Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#141413] border border-[#5DF8D8]/50 p-5 shadow-2xl cyber-chamfer-card flex flex-col gap-4 text-right">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#5DF8D8] text-[20px]">edit</span>
-                ویرایش تابلوی اعلانات
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSave} className="flex flex-col gap-3">
-              <div>
-                <label className="text-xs text-[#A3A39E] block mb-1">عنوان اعلان:</label>
-                <input
-                  value={titleInput}
-                  onChange={(e) => setTitleInput(e.target.value)}
-                  className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#5DF8D8] outline-none"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-[#A3A39E] block mb-1">متن اعلان:</label>
-                <textarea
-                  rows={3}
-                  value={contentInput}
-                  onChange={(e) => setContentInput(e.target.value)}
-                  className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#5DF8D8] outline-none leading-relaxed"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-[#A3A39E] block mb-1">سطح اولویت:</label>
-                <select
-                  value={priorityInput}
-                  onChange={(e) => setPriorityInput(e.target.value as any)}
-                  className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#5DF8D8] outline-none"
-                >
-                  <option value="عادی">عادی</option>
-                  <option value="مهم">مهم</option>
-                  <option value="فوری">فوری (پاپ‌آپ و هشدار)</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-2 px-4 bg-[#5DF8D8] text-[#0A2821] font-bold text-xs flex items-center justify-center gap-1 cyber-chamfer-btn shadow-[0_0_12px_rgba(93,248,216,0.3)]"
-                >
-                  <span className="material-symbols-outlined text-[16px]">save</span>
-                  <span>انتشار اعلان</span>
-                </button>
+          <div className="w-full max-w-md cyber-card-frame">
+            <div className="cyber-card-content p-5 flex flex-col gap-4 text-right">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#5DF8D8] text-[20px]">edit</span>
+                  ویرایش تابلوی اعلانات
+                </h3>
                 <button
                   type="button"
-                  onClick={handleClear}
-                  className="py-2 px-3 bg-[#F62477]/20 border border-[#F62477]/40 text-[#F62477] font-bold text-xs cyber-chamfer-btn-sm"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="text-gray-400 hover:text-white"
                 >
-                  پاکسازی
+                  <span className="material-symbols-outlined text-[18px]">close</span>
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSave} className="flex flex-col gap-3">
+                <div>
+                  <label className="text-xs text-[#A3A39E] block mb-1">عنوان اعلان:</label>
+                  <input
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value)}
+                    className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#5DF8D8] outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-[#A3A39E] block mb-1">متن اعلان:</label>
+                  <textarea
+                    rows={3}
+                    value={contentInput}
+                    onChange={(e) => setContentInput(e.target.value)}
+                    className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#5DF8D8] outline-none leading-relaxed"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-[#A3A39E] block mb-1">سطح اولویت:</label>
+                  <select
+                    value={priorityInput}
+                    onChange={(e) => setPriorityInput(e.target.value as any)}
+                    className="w-full bg-[#0E0E0D] border border-white/10 rounded-lg p-2 text-xs text-white focus:border-[#5DF8D8] outline-none"
+                  >
+                    <option value="عادی">عادی</option>
+                    <option value="مهم">مهم</option>
+                    <option value="فوری">فوری (پاپ‌آپ و هشدار)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 px-4 bg-[#5DF8D8] text-[#0A2821] font-bold text-xs flex items-center justify-center gap-1 cyber-chamfer-btn shadow-[0_0_12px_rgba(93,248,216,0.3)]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">save</span>
+                    <span>انتشار اعلان</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="py-2 px-3 bg-[#F62477] text-white font-bold text-xs rounded-lg active:scale-95 transition-all"
+                  >
+                    پاکسازی
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

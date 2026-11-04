@@ -28,7 +28,7 @@ export const TaskMetricsBar: React.FC<TaskMetricsBarProps> = ({
   ];
 
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -37,12 +37,12 @@ export const TaskMetricsBar: React.FC<TaskMetricsBarProps> = ({
             sound.play('tap');
             onSelectFilter(tab.id);
           }}
-          className={`py-2 px-3 text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cyber-chamfer-btn-sm ${
+          className={`py-2 px-3 text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cyber-chamfer-btn-sm active:scale-95 ${
             filterType === tab.id
               ? tab.urgent
-                ? 'bg-[#F62477] text-white font-bold shadow-[0_0_12px_rgba(246,36,119,0.4)]'
-                : 'bg-[#5DF8D8] text-[#0A2821] font-bold shadow-[0_0_12px_rgba(93,248,216,0.3)]'
-              : 'bg-[#141413] text-[#A3A39E] hover:text-white border border-white/5'
+                ? 'bg-[#F62477] text-white font-bold shadow-[0_0_14px_rgba(246,36,119,0.45)]'
+                : 'bg-[#5DF8D8] text-[#0A2821] font-bold shadow-[0_0_14px_rgba(93,248,216,0.35)]'
+              : 'bg-[#141413] text-[#8E8E8A] hover:text-white hover:bg-[#1A1A18]'
           }`}
         >
           <span>{tab.label}</span>

@@ -44,7 +44,7 @@ export const CheckUpdateButton: React.FC<CheckUpdateButtonProps> = ({ onStatusMe
       disabled={isChecking}
       title="بررسی دستی نسخه جدید و بروزرسانی نرم‌افزار"
       aria-label="بررسی بروزرسانی"
-      className="w-9 h-9 bg-[#141413] border border-[#5DF8D8]/25 hover:border-[#5DF8D8] text-[#5DF8D8] flex items-center justify-center transition-colors active:scale-95 relative cyber-chamfer-btn-sm"
+      className="w-9 h-9 bg-[#161615] hover:bg-[#222220] text-[#5DF8D8] flex items-center justify-center transition-all active:scale-95 relative cyber-chamfer-btn-sm shadow-sm"
     >
       <span
         className={`material-symbols-outlined text-[18px] ${
