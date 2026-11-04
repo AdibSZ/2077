@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#141413"/>
+  <circle cx="60" cy="60" r="54" fill="#1D1D1B" stroke="#5DF8D8" stroke-width="2"/>
+  <!-- Head -->
+  <path d="M42,48 C42,32 78,32 78,48 L80,74 C80,88 40,88 40,74 Z" fill="#282826"/>
+  <!-- Cyber Hair -->
+  <path d="M38,44 C38,26 82,26 82,44 L78,36 L60,32 L42,36 Z" fill="#F62477"/>
+  <!-- Optical Eyepiece on Right Eye -->
+  <circle cx="70" cy="56" r="8" fill="#141413" stroke="#5DF8D8" stroke-width="2"/>
+  <circle cx="70" cy="56" r="4" fill="#5DF8D8"/>
+  <circle cx="50" cy="56" r="3" fill="#F5F5F5"/>
+  <!-- Collar -->
+  <path d="M28,110 L44,86 L76,86 L92,110 Z" fill="#181816" stroke="#5DF8D8" stroke-width="1.5"/>
+  <line x1="60" y1="86" x2="60" y2="110" stroke="#F62477" stroke-width="2"/>
+</svg>

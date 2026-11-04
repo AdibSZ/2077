@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" fill="#141413"/>
+  <circle cx="60" cy="60" r="54" fill="#1D1D1B" stroke="#F62477" stroke-width="2"/>
+  <!-- Cyberpunk Helmet / Tactical Mask -->
+  <path d="M40,45 C40,30 80,30 80,45 L85,75 C85,90 35,90 35,75 Z" fill="#252523" stroke="#5DF8D8" stroke-width="1.5"/>
+  <!-- Glowing Tactical Visor -->
+  <polygon points="36,52 84,52 80,64 40,64" fill="#F62477"/>
+  <line x1="38" y1="58" x2="82" y2="58" stroke="#FFFFFF" stroke-width="1.5"/>
+  <!-- Collar / Techwear Armor -->
+  <path d="M30,110 L40,88 L80,88 L90,110 Z" fill="#181816" stroke="#F62477" stroke-width="1.5"/>
+  <polygon points="52,88 68,88 64,105 56,105" fill="#5DF8D8"/>
+  <circle cx="60" cy="96" r="3" fill="#141413"/>
+  <text x="60" y="24" fill="#F62477" font-family="monospace" font-size="8" font-weight="bold" text-anchor="middle">ADMIN</text>
+</svg>

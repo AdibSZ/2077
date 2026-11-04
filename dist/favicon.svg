@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <polygon points="40,10 160,10 190,40 190,160 160,190 40,190 10,160 10,40" fill="#141413" stroke="#5DF8D8" stroke-width="6"/>
+  <polygon points="60,35 140,35 165,60 165,140 140,165 60,165 35,140 35,60" fill="#1D1D1B" stroke="#F62477" stroke-width="4"/>
+  <g fill="#F5F5F5">
+    <path d="M52,70 L72,70 L72,82 L58,95 L72,95 L72,102 L50,102 L50,92 L64,78 L52,78 Z" fill="#F62477"/>
+    <path d="M78,70 L96,70 L96,102 L78,102 Z M84,77 L84,95 L90,95 L90,77 Z" fill="#5DF8D8"/>
+    <path d="M102,70 L122,70 L112,102 L105,102 L114,77 L102,77 Z" fill="#F62477"/>
+    <path d="M126,70 L146,70 L136,102 L129,102 L138,77 L126,77 Z" fill="#5DF8D8"/>
+  </g>
+  <text x="100" y="130" fill="#5DF8D8" font-family="monospace" font-size="12" font-weight="900" text-anchor="middle">2077</text>
+</svg>
