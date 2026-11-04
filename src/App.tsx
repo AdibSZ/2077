@@ -112,6 +112,7 @@ export function App() {
         onLogout={handleLogout}
         onOpenNotifications={() => setIsNotificationModalOpen(true)}
         unreadNotificationCount={unreadNoticeCount}
+        onRefresh={loadData}
       />
 
       {/* Main Tab View with safe paddings */}

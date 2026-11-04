@@ -15,6 +15,7 @@ interface HeaderProps {
   onLogout: () => void;
   onOpenNotifications?: () => void;
   unreadNotificationCount?: number;
+  onRefresh?: () => void;
 }
 
 const EMBLEM_URL = getAssetUrl('/brand/logo-mint.png');
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onOpenNotifications,
   unreadNotificationCount = 0,
+  onRefresh,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -37,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
       const now = new Date();
       setLiveTime(
         now.toLocaleTimeString('fa-IR', {
-            hour: '2-digit',
+          hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
           hour12: false,
@@ -66,12 +68,14 @@ export const Header: React.FC<HeaderProps> = ({
     });
     setNoticeMessage('وضعیت حضور سایبری شما همگام‌سازی شد.');
     setTimeout(() => setNoticeMessage(null), 2500);
+    onRefresh?.();
   };
 
   const handleSaveAvatar = async (avatarUrl: string) => {
     await db.updateProfile(currentUser.id, { avatarUrl });
     setNoticeMessage('آواتار سایبری با موفقیت ثبت و ذخیره شد.');
     setTimeout(() => setNoticeMessage(null), 2500);
+    onRefresh?.();
   };
 
   const getTabTitle = () => {
